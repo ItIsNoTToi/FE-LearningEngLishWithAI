@@ -1,14 +1,45 @@
 import React, { useState } from 'react';
 import { StyleSheet, Text, View, TouchableOpacity, TextInput, Image } from 'react-native';
+import { fetchRegister } from '../services/api/auth.services';
+import { useAuth } from '../hooks/AuthContext';
 
 export default function Register({ navigation }: any) {
+  const [username, setUserName] = useState('');
   const [email, setEmail] = useState('');
+  const [FirstName, setFirstName] = useState('');
+  const [LastName, setLastName] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
 
-  const handleRegister = () => {
-    // Here you'd usually validate and send to backend
-    console.log('Registering with:', email, password);
-    navigation.navigate('Login');
+  const { login } = useAuth();
+
+  const handleRegister = async () => {
+    if(username && email && FirstName && LastName && password && confirmPassword) {
+      if(confirmPassword != password) {
+        alert('Your password must match with your confirm password');
+        return;
+      } else {
+        const userData = {
+          username: username.trim(),
+          email: email.trim(),
+          password: password.trim(),
+          FirstName: FirstName.trim(),
+          LastName: LastName.trim(),
+          Phone: '1', Address: '1', DateOfBirth: '1'
+        }
+
+        await fetchRegister(userData)
+        .then((data) => {
+          console.log(data);
+          data.success ? login() : alert('Login failed. Please check your credentials.');
+        })
+        .catch((error) => {
+          console.error(error);
+        })
+      }
+    } else {
+      alert('You must fill all the fields');
+    }
   };
 
   return (
@@ -17,6 +48,13 @@ export default function Register({ navigation }: any) {
 
       <Text style={styles.title}>Create your LearnE Account</Text>
       <Text style={styles.subtitle}>Start your English journey with AI today!</Text>
+
+      <TextInput
+        style={styles.input}
+        placeholder="username"
+        value={username}
+        onChangeText={setUserName}
+      /> 
 
       <TextInput
         style={styles.input}
@@ -29,9 +67,30 @@ export default function Register({ navigation }: any) {
 
       <TextInput
         style={styles.input}
+        placeholder="FirstName"
+        value={FirstName}
+        onChangeText={setFirstName}
+      />
+
+      <TextInput
+        style={styles.input}
+        placeholder="LastName"
+        value={LastName}
+        onChangeText={setLastName}
+      />
+
+      <TextInput
+        style={styles.input}
         placeholder="Password"
         value={password}
         onChangeText={setPassword}
+      />
+
+      <TextInput
+        style={styles.input}
+        placeholder="Confirm Password"
+        value={confirmPassword}
+        onChangeText={setConfirmPassword}
         secureTextEntry
       />
 

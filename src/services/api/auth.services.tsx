@@ -16,3 +16,19 @@ export const fetchLogin = async (data: any): Promise<any> => {
         throw error; // Re-throw the error for further handling
     }
 }
+
+export const fetchRegister = async (userData: any): Promise<any> => {
+    try {
+        // console.log("Fetching login with data:", data);
+
+        const response = await axios.post('/api/register',
+        {
+            userData: userData
+        });      
+
+        return response.data;  
+    } catch (error) {
+        console.error("Error fetching login:", error);
+        throw error; // Re-throw the error for further handling
+    }
+}
