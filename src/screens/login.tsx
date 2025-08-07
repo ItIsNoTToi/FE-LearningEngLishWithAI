@@ -1,0 +1,142 @@
+import React, { useState } from 'react';
+import { StyleSheet, Text, View, TouchableOpacity, Image, TextInput } from 'react-native';
+import { useAuth } from '../hooks/AuthContext';
+import { fetchLogin } from '../services/api/auth.services';
+
+export default function Login({ navigation }: any) {
+  const { login } = useAuth();
+  const [inputVisible, setInputVisible] = useState(false);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+
+  const handleLogin = () => {
+    if (!inputVisible) {
+      setInputVisible(true); // show input field
+    } else {
+      if (email && password) {
+        const data = {
+          email: email.trim(),
+          password: password.trim(),
+        }
+
+        fetchLogin( data )
+          .then(data => {
+            console.log("Login successful:", data);
+            data.success ? login() : alert('Login failed. Please check your credentials.');
+          })
+          .catch(error => {
+            console.error("Error:", error);
+            alert('Error:' + error);
+          })
+      }
+      else{
+        alert('Please enter both email and password.'); // simple validation
+      }
+    }
+  };
+
+  return (
+    <View style={styles.container}>
+      <Image source={require('../../assets/icon.png')} style={styles.logo} />
+
+      <Text style={styles.title}>Welcome to LearnE</Text>
+      <Text style={styles.subtitle}>Learn English with AI – Smart, Fun, Personalized</Text>
+
+      {inputVisible && (
+        <TextInput
+          style={styles.input}
+          placeholder="Email"
+          value={email}
+          onChangeText={setEmail}
+          keyboardType="email-address"
+          autoCapitalize="none"
+        />
+      )}
+
+      {inputVisible && (
+        <TextInput
+          style={styles.input}
+          placeholder="Password"
+          value={password}
+          onChangeText={setPassword}
+          secureTextEntry={true}
+          keyboardType="default"
+          autoCapitalize="none"
+        />
+      )}
+
+      <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>
+        <Text style={styles.loginText}>Log in with Email</Text>
+      </TouchableOpacity>
+
+      <Text style={styles.orText}>or</Text>
+
+      <TouchableOpacity onPress={() => navigation.navigate('Register')}>
+        <Text style={styles.registerText}>Create a new account</Text>
+      </TouchableOpacity>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#f0f6ff',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 24,
+  },
+  input: {
+    width: '100%',
+    height: 45,
+    borderColor: '#ccc',
+    borderWidth: 1,
+    borderRadius: 6,
+    paddingHorizontal: 12,
+    marginBottom: 20,
+    backgroundColor: '#fff',
+  },
+  logo: {
+    width: 100,
+    height: 100,
+    marginBottom: 24,
+    resizeMode: 'contain',
+  },
+  title: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    color: '#1a1a1a',
+    marginBottom: 8,
+  },
+  subtitle: {
+    fontSize: 14,
+    color: '#555',
+    textAlign: 'center',
+    marginBottom: 32,
+    paddingHorizontal: 20,
+  },
+  loginButton: {
+    backgroundColor: '#4f6ef7',
+    paddingVertical: 14,
+    paddingHorizontal: 32,
+    borderRadius: 8,
+    marginBottom: 16,
+    width: '100%',
+  },
+  loginText: {
+    color: '#fff',
+    fontSize: 16,
+    textAlign: 'center',
+    fontWeight: '600',
+  },
+  orText: {
+    color: '#999',
+    fontSize: 14,
+    marginVertical: 8,
+  },
+  registerText: {
+    color: '#4f6ef7',
+    fontSize: 15,
+    textDecorationLine: 'underline',
+  },
+});
