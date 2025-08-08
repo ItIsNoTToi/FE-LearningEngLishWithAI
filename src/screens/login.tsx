@@ -66,10 +66,14 @@ export default function Login({ navigation }: any) {
       )}
 
       <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>
-        <Text style={styles.loginText}>Log in with Email</Text>
+        <Text style={styles.loginText}>Login with Email</Text>
       </TouchableOpacity>
 
       <Text style={styles.orText}>or</Text>
+
+      <TouchableOpacity onPress={() => navigation.navigate('LoginWithPhone')}>
+        <Text style={styles.registerText}>Login with Phone Number</Text>
+      </TouchableOpacity>
 
       <TouchableOpacity onPress={() => navigation.navigate('Register')}>
         <Text style={styles.registerText}>Create a new account</Text>

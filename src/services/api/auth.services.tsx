@@ -17,6 +17,22 @@ export const fetchLogin = async (data: any): Promise<any> => {
     }
 }
 
+export const fetchLoginWithPhone = async (data: any): Promise<any> => {
+    try {
+        // console.log("Fetching login with data:", data);
+
+        const response = await axios.post('/api/loginwithphone',
+        {
+            phone: data.phoneNumber
+        });      
+
+        return response.data;  
+    } catch (error) {
+        console.error("Error fetching login:", error);
+        throw error; // Re-throw the error for further handling
+    }
+}
+
 export const fetchRegister = async (userData: any): Promise<any> => {
     try {
         // console.log("Fetching login with data:", data);
