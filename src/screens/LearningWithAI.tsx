@@ -6,48 +6,55 @@ import {
   TouchableOpacity,
   ScrollView,
   StyleSheet,
-  KeyboardAvoidingView,
   Platform,
+  KeyboardAvoidingView,
+  NativeSyntheticEvent,
+  TextInputSubmitEditingEventData,
 } from 'react-native';
+import type { AppDispatch, RootState } from '../redux/store'
+import { useDispatch, useSelector } from 'react-redux'
+import { fetchAI } from '../services/api/AI.services';
+
+export const useAppDispatch = useDispatch.withTypes<AppDispatch>()
+export const useAppSelector = useSelector.withTypes<RootState>()
 
 const LearningWithAI = () => {
   const [userInput, setUserInput] = useState('');
   const [messages, setMessages] = useState<{ from: 'user' | 'ai'; text: string }[]>([]);
+
+  const selectedLession = useSelector((state: RootState) => state.lession.selectedLession);
+  if (!selectedLession ) {
+    return <Text>No lesson selected</Text>;
+  }
+
   const scrollViewRef = useRef<ScrollView>(null);
 
   const handleSend = async () => {
     if (!userInput.trim()) return;
 
-    const newMessage: { from: 'user' | 'ai'; text: string } = { from: 'user', text: userInput };
-    setMessages((prev) => [...prev, newMessage]);
+    const newMessage: { from: 'user'; text: string } = { from: 'user', text: userInput };
+    setMessages(prev => [...prev, newMessage]);
 
     try {
-      const response = await fetch('https://api.openai.com/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          Authorization: 'Bearer YOUR_OPENAI_API_KEY',
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          model: 'gpt-3.5-turbo',
-          messages: [
-            { role: 'system', content: 'You are a helpful English teacher.' },
-            { role: 'user', content: userInput },
-          ],
-        }),
-      });
+      const data = {
+        sessionId: '1234',
+        userId: '68917f4d310af0a917685528',
+        lessionId: selectedLession._id,
+        userSpeechText: userInput
+      };
 
-      const data = await response.json();
-      const aiReply = data.choices[0].message.content;
-
-      setMessages((prev) => [...prev, { from: 'ai', text: aiReply }]);
-      setUserInput('');
+      fetchAI(data)
+        .then(data => {
+          setMessages(prev => [...prev, { from: 'ai', text: data.aiReplyText }]);
+          setUserInput('');
+        })
+        .catch(console.error);
     } catch (error) {
       console.error(error);
     }
   };
 
-  // Tự động scroll xuống cuối khi có tin nhắn mới
+  // Scroll xuống cuối mỗi khi có tin nhắn mới
   useEffect(() => {
     scrollViewRef.current?.scrollToEnd({ animated: true });
   }, [messages]);
@@ -55,16 +62,17 @@ const LearningWithAI = () => {
   return (
     <KeyboardAvoidingView
       style={{ flex: 1 }}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      keyboardVerticalOffset={Platform.OS === 'ios' ? 80 : 0}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'padding'}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 80 : 80} // Tùy chỉnh offset cho bàn phím ios
     >
-      <View style={styles.container}>
-        <Text style={styles.title}>Learn English with AI</Text>
+      <View style={{ flex: 1 }}>
+        <Text style={styles.title}>{selectedLession.title}</Text>
 
         <ScrollView
           style={styles.chatBox}
-          contentContainerStyle={{ paddingBottom: 10 }}
+          contentContainerStyle={{ paddingBottom: 20 }}
           ref={scrollViewRef}
+          keyboardShouldPersistTaps="handled"
         >
           {messages.map((msg, idx) => (
             <Text
@@ -84,6 +92,8 @@ const LearningWithAI = () => {
             placeholder="Ask me anything in English..."
             style={styles.input}
             autoFocus
+            returnKeyType="send"
+            onSubmitEditing={handleSend}
           />
           <TouchableOpacity onPress={handleSend} style={styles.sendButton}>
             <Text style={styles.sendText}>Send</Text>
@@ -97,9 +107,17 @@ const LearningWithAI = () => {
 export default LearningWithAI;
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 16, backgroundColor: '#fff' },
-  title: { fontSize: 22, fontWeight: 'bold', marginBottom: 16, marginTop: 25 },
-  chatBox: { flex: 1, marginBottom: 10 },
+  title: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    marginBottom: 16,
+    marginTop: 25,
+    paddingHorizontal: 16,
+  },
+  chatBox: {
+    flex: 1,
+    marginHorizontal: 16,
+  },
   userMessage: {
     alignSelf: 'flex-end',
     backgroundColor: '#DCF8C6',
@@ -117,7 +135,9 @@ const styles = StyleSheet.create({
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingBottom: Platform.OS === 'ios' ? 20 : 8, // tránh bị che
+    marginHorizontal: 16,
+    marginVertical: 8,
+    paddingBottom: Platform.OS === 'ios' ? 20 : 40, // tránh bị che trên ios
   },
   input: {
     flex: 1,

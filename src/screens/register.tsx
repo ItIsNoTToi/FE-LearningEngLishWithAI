@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { StyleSheet, Text, View, TouchableOpacity, TextInput, Image } from 'react-native';
+import { StyleSheet, Text, View, TouchableOpacity, TextInput, Image, KeyboardAvoidingView } from 'react-native';
 import { fetchRegister } from '../services/api/auth.services';
 import { useAuth } from '../hooks/AuthContext';
 import { ScrollView } from 'react-native-gesture-handler';
@@ -41,64 +41,67 @@ export default function Register({ navigation }: any) {
   };
 
   return (
-    <ScrollView style={{ flex: 1, backgroundColor: '#f0f6ff', }}>
-      <View style={styles.container}>
-        <Image source={require('../../assets/icon.png')} style={styles.logo} />
+    <KeyboardAvoidingView behavior="padding" style={{flex: 1}}>
+      <ScrollView style={{ flex: 1, backgroundColor: '#f0f6ff', }}>
+        <View style={styles.container}>
+          <Image source={require('../../assets/icon.png')} style={styles.logo} />
 
-        <Text style={styles.title}>Create your LearnE Account</Text>
-        <Text style={styles.subtitle}>Start your English journey with AI today!</Text>
+          <Text style={styles.title}>Create your LearnE Account</Text>
+          <Text style={styles.subtitle}>Start your English journey with AI today!</Text>
 
-        <TextInput
-          style={styles.input}
-          placeholder="username"
-          value={username}
-          onChangeText={setUserName}
-        /> 
+          <TextInput
+            style={styles.input}
+            placeholder="username"
+            value={username}
+            onChangeText={setUserName}
+          /> 
 
-        <TextInput
-          style={styles.input}
-          placeholder="Email"
-          value={email}
-          onChangeText={setEmail}
-          keyboardType="email-address"
-          autoCapitalize="none"
-        />
+          <TextInput
+            style={styles.input}
+            placeholder="Email"
+            value={email}
+            onChangeText={setEmail}
+            keyboardType="email-address"
+            autoCapitalize="none"
+          />
 
-        <TextInput
-          style={styles.input}
-          placeholder="Phone Number"
-          value={phoneNumber}
-          onChangeText={setPhoneNumber}
-          keyboardType="phone-pad"
-          autoCapitalize="none"
-        />
+          <TextInput
+            style={styles.input}
+            placeholder="Phone Number"
+            value={phoneNumber}
+            onChangeText={setPhoneNumber}
+            keyboardType="phone-pad"
+            autoCapitalize="none"
+          />
 
-        <TextInput
-          style={styles.input}
-          placeholder="Password"
-          value={password}
-          onChangeText={setPassword}
-        />
+          <TextInput
+            style={styles.input}
+            placeholder="Password"
+            value={password}
+            onChangeText={setPassword}
+            secureTextEntry
+          />
 
-        <TextInput
-          style={styles.input}
-          placeholder="Confirm Password"
-          value={confirmPassword}
-          onChangeText={setConfirmPassword}
-          secureTextEntry
-        />
+          <TextInput
+            style={styles.input}
+            placeholder="Confirm Password"
+            value={confirmPassword}
+            onChangeText={setConfirmPassword}
+            secureTextEntry
+          />
 
-        <TouchableOpacity style={styles.registerButton} onPress={handleRegister}>
-          <Text style={styles.registerText}>Register</Text>
-        </TouchableOpacity>
-        
-        <Text style={styles.orText}>Already have an account?</Text>
+          <TouchableOpacity style={styles.registerButton} onPress={handleRegister}>
+            <Text style={styles.registerText}>Register</Text>
+          </TouchableOpacity>
+          
+          <Text style={styles.orText}>Already have an account?</Text>
 
-        <TouchableOpacity onPress={() => navigation.navigate('Login')}>
-          <Text style={styles.loginText}>Login here</Text>
-        </TouchableOpacity>
-      </View>
-    </ScrollView>
+          <TouchableOpacity onPress={() => navigation.navigate('Login')}>
+            <Text style={styles.loginText}>Login here</Text>
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 

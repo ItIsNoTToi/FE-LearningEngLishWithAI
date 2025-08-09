@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { StyleSheet, Text, View, TouchableOpacity, Image, TextInput } from 'react-native';
+import { StyleSheet, Text, View, TouchableOpacity, Image, TextInput, KeyboardAvoidingView } from 'react-native';
 import { useAuth } from '../hooks/AuthContext';
 import { fetchLoginWithPhone } from '../services/api/auth.services';
 
@@ -62,62 +62,64 @@ export default function LoginWithPhone({ navigation }: any) {
     };
 
   return (
-    <View style={styles.container}>
-        <Image source={require('../../assets/icon.png')} style={styles.logo} />
+    <KeyboardAvoidingView behavior="padding" style={{flex: 1}}>
+      <View style={styles.container}>
+          <Image source={require('../../assets/icon.png')} style={styles.logo} />
 
-        <Text style={styles.title}>Welcome to LearnE</Text>
-        <Text style={styles.subtitle}>Learn English with AI – Smart, Fun, Personalized</Text>
+          <Text style={styles.title}>Welcome to LearnE</Text>
+          <Text style={styles.subtitle}>Learn English with AI – Smart, Fun, Personalized</Text>
 
-        {inputVisible && (
-            <TextInput
-            style={styles.input}
-            placeholder="Phone number"
-            value={phoneNumber}
-            onChangeText={setPhoneNumber}
-            keyboardType="phone-pad"
-            autoCapitalize="none"
-            />
-        )}
+          {inputVisible && (
+              <TextInput
+              style={styles.input}
+              placeholder="Phone number"
+              value={phoneNumber}
+              onChangeText={setPhoneNumber}
+              keyboardType="phone-pad"
+              autoCapitalize="none"
+              />
+          )}
 
-        {phonecheckVisible && (
-            status ? (
-                <View style={{ flexDirection: 'row' }}>
-                <TouchableOpacity style={styles.checkButton} onPress={sendCode}>
-                    <Text style={styles.checkText}>send code</Text>
-                </TouchableOpacity>
-                </View>
-            ) : (
-                <View style={{ flexDirection: 'row' }}>
-                <TextInput
-                    style={{ ...styles.input, width: '60%', marginRight: 12 }}
-                    placeholder="Phone Code"
-                    value={phoneCode}
-                    onChangeText={setPhoneCode}
-                    keyboardType="number-pad"
-                    autoCapitalize="none"
-                />
-                <TouchableOpacity style={styles.checkButton} onPress={handlecheck}>
-                    <Text style={styles.checkText}>Check</Text>
-                </TouchableOpacity>
-                </View>
-            )
-        )}
+          {phonecheckVisible && (
+              status ? (
+                  <View style={{ flexDirection: 'row' }}>
+                  <TouchableOpacity style={styles.checkButton} onPress={sendCode}>
+                      <Text style={styles.checkText}>send code</Text>
+                  </TouchableOpacity>
+                  </View>
+              ) : (
+                  <View style={{ flexDirection: 'row' }}>
+                  <TextInput
+                      style={{ ...styles.input, width: '60%', marginRight: 12 }}
+                      placeholder="Phone Code"
+                      value={phoneCode}
+                      onChangeText={setPhoneCode}
+                      keyboardType="number-pad"
+                      autoCapitalize="none"
+                  />
+                  <TouchableOpacity style={styles.checkButton} onPress={handlecheck}>
+                      <Text style={styles.checkText}>Check</Text>
+                  </TouchableOpacity>
+                  </View>
+              )
+          )}
 
 
-      <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>
-        <Text style={styles.loginText}>Login with Phone Number</Text>
-      </TouchableOpacity>
+        <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>
+          <Text style={styles.loginText}>Login with Phone Number</Text>
+        </TouchableOpacity>
 
-      <Text style={styles.orText}>or</Text>
+        <Text style={styles.orText}>or</Text>
 
-      <TouchableOpacity onPress={() => navigation.navigate('Login')}>
-        <Text style={styles.registerText}>Login with Email</Text>
-      </TouchableOpacity>
+        <TouchableOpacity onPress={() => navigation.navigate('Login')}>
+          <Text style={styles.registerText}>Login with Email</Text>
+        </TouchableOpacity>
 
-      <TouchableOpacity onPress={() => navigation.navigate('Register')}>
-        <Text style={styles.registerText}>Create a new account</Text>
-      </TouchableOpacity>
-    </View>
+        <TouchableOpacity onPress={() => navigation.navigate('Register')}>
+          <Text style={styles.registerText}>Create a new account</Text>
+        </TouchableOpacity>
+      </View>  
+    </KeyboardAvoidingView>
   );
 }
 

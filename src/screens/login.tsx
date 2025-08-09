@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { StyleSheet, Text, View, TouchableOpacity, Image, TextInput } from 'react-native';
+import { StyleSheet, Text, View, TouchableOpacity, Image, TextInput, KeyboardAvoidingView } from 'react-native';
 import { useAuth } from '../hooks/AuthContext';
 import { fetchLogin } from '../services/api/auth.services';
 
@@ -36,49 +36,51 @@ export default function Login({ navigation }: any) {
   };
 
   return (
-    <View style={styles.container}>
-      <Image source={require('../../assets/icon.png')} style={styles.logo} />
+    <KeyboardAvoidingView behavior="padding" style={{flex: 1}}>
+      <View style={styles.container}>
+        <Image source={require('../../assets/icon.png')} style={styles.logo} />
 
-      <Text style={styles.title}>Welcome to LearnE</Text>
-      <Text style={styles.subtitle}>Learn English with AI – Smart, Fun, Personalized</Text>
+        <Text style={styles.title}>Welcome to LearnE</Text>
+        <Text style={styles.subtitle}>Learn English with AI – Smart, Fun, Personalized</Text>
 
-      {inputVisible && (
-        <TextInput
-          style={styles.input}
-          placeholder="Email"
-          value={email}
-          onChangeText={setEmail}
-          keyboardType="email-address"
-          autoCapitalize="none"
-        />
-      )}
+        {inputVisible && (
+          <TextInput
+            style={styles.input}
+            placeholder="Email"
+            value={email}
+            onChangeText={setEmail}
+            keyboardType="email-address"
+            autoCapitalize="none"
+          />
+        )}
 
-      {inputVisible && (
-        <TextInput
-          style={styles.input}
-          placeholder="Password"
-          value={password}
-          onChangeText={setPassword}
-          secureTextEntry={true}
-          keyboardType="default"
-          autoCapitalize="none"
-        />
-      )}
+        {inputVisible && (
+          <TextInput
+            style={styles.input}
+            placeholder="Password"
+            value={password}
+            onChangeText={setPassword}
+            secureTextEntry={true}
+            keyboardType="default"
+            autoCapitalize="none"
+          />
+        )}
 
-      <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>
-        <Text style={styles.loginText}>Login with Email</Text>
-      </TouchableOpacity>
+        <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>
+          <Text style={styles.loginText}>Login with Email</Text>
+        </TouchableOpacity>
 
-      <Text style={styles.orText}>or</Text>
+        <Text style={styles.orText}>or</Text>
 
-      <TouchableOpacity onPress={() => navigation.navigate('LoginWithPhone')}>
-        <Text style={styles.registerText}>Login with Phone Number</Text>
-      </TouchableOpacity>
+        <TouchableOpacity onPress={() => navigation.navigate('LoginWithPhone')}>
+          <Text style={styles.registerText}>Login with Phone Number</Text>
+        </TouchableOpacity>
 
-      <TouchableOpacity onPress={() => navigation.navigate('Register')}>
-        <Text style={styles.registerText}>Create a new account</Text>
-      </TouchableOpacity>
-    </View>
+        <TouchableOpacity onPress={() => navigation.navigate('Register')}>
+          <Text style={styles.registerText}>Create a new account</Text>
+        </TouchableOpacity>
+      </View>
+    </KeyboardAvoidingView>
   );
 }
 
