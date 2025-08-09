@@ -9,9 +9,19 @@ import ListLesson from '../screens/ListLession';
 import RankingScreen from '../screens/RankingScreen';
 import CompetitionScreen from '../screens/CompetitionScreen';
 import LearningWithAI from '../screens/LearningWithAI';
+import VocabularyPage from '../screens/Vocabulary';
+import QuizTest from '../screens/QuizTest';
+import Listening from '../screens/Listening';
+import ListQuizTopic from '../screens/ListQuizTopic';
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
+const QuizStack = createStackNavigator<QuizStackParamList>();
+
+export type QuizStackParamList = {
+  QuizTopic: undefined;
+  Test: { quizId: string; quizTitle: string };
+}
 
 function MainTabs() {
   return (
@@ -70,6 +80,23 @@ function MainTabs() {
   );
 }
 
+function QuizTabs() {
+  return (
+    <QuizStack.Navigator screenOptions={{ headerShown: false }}>
+      <QuizStack.Screen
+        name="QuizTopic"
+        component={ListQuizTopic}
+        options={{ title: 'Quiz Topic' }}
+      />
+      <QuizStack.Screen
+        name="Test"
+        component={QuizTest}
+        options={{ title: 'Test' }}
+      />
+    </QuizStack.Navigator>
+  );
+}
+
 export default function AppNavigation() {
   return (
     <Stack.Navigator>
@@ -83,7 +110,22 @@ export default function AppNavigation() {
       <Stack.Screen
         name="LearningWithAI"
         component={LearningWithAI}
-        options={{ title: 'Learning with AI' }}
+        options={{ title: 'Learning with AI', headerShown: false }}
+      />
+      <Stack.Screen
+        name="QuizTest"
+        component={QuizTabs}
+        options={{ title: 'Quiz Test', headerShown: false }}
+      />
+      <Stack.Screen
+        name="Vocabulary"
+        component={VocabularyPage}
+        options={{ title: 'Vocabulary', headerShown: false }}
+      />
+      <Stack.Screen
+        name="AIListening"
+        component={Listening}
+        options={{ title: 'Listening', headerShown: false }}
       />
     </Stack.Navigator>
   );

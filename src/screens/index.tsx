@@ -15,12 +15,12 @@ export default function HomeSreen({ navigation }: any) {
       <Text style={styles.sectionTitle}>Start Learning</Text>
 
       <View style={styles.cardContainer}>
-        <TouchableOpacity style={styles.card} onPress={() => navigation.navigate('AIVocabulary')}>
+        <TouchableOpacity style={styles.card} onPress={() => navigation.navigate('Vocabulary')}>
           <Ionicons name="book-outline" size={32} color="#4f6ef7" />
           <Text style={styles.cardText}>Vocabulary</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.card} onPress={() => navigation.navigate('AIConversation')}>
+        <TouchableOpacity style={styles.card} onPress={() => navigation.navigate('ListLession')}>
           <Ionicons name="chatbubbles-outline" size={32} color="#4f6ef7" />
           <Text style={styles.cardText}>Talk with AI</Text>
         </TouchableOpacity>
@@ -30,7 +30,7 @@ export default function HomeSreen({ navigation }: any) {
           <Text style={styles.cardText}>Listening</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.card} onPress={() => navigation.navigate('AITest')}>
+        <TouchableOpacity style={styles.card} onPress={() => navigation.navigate('QuizTest')}>
           <Ionicons name="clipboard-outline" size={32} color="#4f6ef7" />
           <Text style={styles.cardText}>Quiz Test</Text>
         </TouchableOpacity>

@@ -8,15 +8,22 @@ import {
   StyleSheet,
   Platform,
   KeyboardAvoidingView,
-  NativeSyntheticEvent,
-  TextInputSubmitEditingEventData,
 } from 'react-native';
+import * as Speech from 'expo-speech';
 import type { AppDispatch, RootState } from '../redux/store'
 import { useDispatch, useSelector } from 'react-redux'
 import { fetchAI } from '../services/api/AI.services';
 
 export const useAppDispatch = useDispatch.withTypes<AppDispatch>()
 export const useAppSelector = useSelector.withTypes<RootState>()
+
+async function speak(text: string) {
+  Speech.speak(text, {
+    language: 'en',
+    pitch: 1.0,
+    rate: 1.0,
+  });
+}
 
 const LearningWithAI = () => {
   const [userInput, setUserInput] = useState('');
@@ -42,11 +49,14 @@ const LearningWithAI = () => {
         lessionId: selectedLession._id,
         userSpeechText: userInput
       };
+      
+      setUserInput('');
 
       fetchAI(data)
-        .then(data => {
-          setMessages(prev => [...prev, { from: 'ai', text: data.aiReplyText }]);
-          setUserInput('');
+        .then( async (data) => {
+          const aiReply = data.aiReplyText;
+          setMessages(prev => [...prev, { from: 'ai', text: aiReply }]);
+          await speak(aiReply);;
         })
         .catch(console.error);
     } catch (error) {
@@ -62,8 +72,8 @@ const LearningWithAI = () => {
   return (
     <KeyboardAvoidingView
       style={{ flex: 1 }}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'padding'}
-      keyboardVerticalOffset={Platform.OS === 'ios' ? 80 : 80} // Tùy chỉnh offset cho bàn phím ios
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 80 : 0} // Tùy chỉnh offset cho bàn phím ios
     >
       <View style={{ flex: 1 }}>
         <Text style={styles.title}>{selectedLession.title}</Text>
@@ -111,7 +121,7 @@ const styles = StyleSheet.create({
     fontSize: 22,
     fontWeight: 'bold',
     marginBottom: 16,
-    marginTop: 25,
+    paddingTop: 45,
     paddingHorizontal: 16,
   },
   chatBox: {
@@ -137,7 +147,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginHorizontal: 16,
     marginVertical: 8,
-    paddingBottom: Platform.OS === 'ios' ? 20 : 40, // tránh bị che trên ios
+    paddingBottom: Platform.OS === 'ios' ? 20 : 0, // tránh bị che trên ios
   },
   input: {
     flex: 1,
