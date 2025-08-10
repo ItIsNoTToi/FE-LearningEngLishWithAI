@@ -20,9 +20,9 @@ export default function HomeSreen({ navigation }: any) {
           <Text style={styles.cardText}>Vocabulary</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.card} onPress={() => navigation.navigate('ListLession')}>
+        <TouchableOpacity style={styles.card} onPress={() => navigation.navigate('Reading')}>
           <Ionicons name="chatbubbles-outline" size={32} color="#4f6ef7" />
-          <Text style={styles.cardText}>Talk with AI</Text>
+          <Text style={styles.cardText}>Reading</Text>
         </TouchableOpacity>
 
         <TouchableOpacity style={styles.card} onPress={() => navigation.navigate('AIListening')}>

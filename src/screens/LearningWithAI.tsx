@@ -8,14 +8,15 @@ import {
   StyleSheet,
   Platform,
   KeyboardAvoidingView,
+  Alert,
 } from 'react-native';
 import * as Speech from 'expo-speech';
-import type { AppDispatch, RootState } from '../redux/store'
-import { useDispatch, useSelector } from 'react-redux'
+import type { chatlog } from '../models/chatlog'; // chỉ import type
 import { fetchAI } from '../services/api/AI.services';
-
-export const useAppDispatch = useDispatch.withTypes<AppDispatch>()
-export const useAppSelector = useSelector.withTypes<RootState>()
+import { fetchChatlog } from '../services/api/chatlog.services';
+import type { RootState } from '../redux/store';
+import { useSelector } from 'react-redux';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 
 async function speak(text: string) {
   Speech.speak(text, {
@@ -30,50 +31,116 @@ const LearningWithAI = () => {
   const [messages, setMessages] = useState<{ from: 'user' | 'ai'; text: string }[]>([]);
 
   const selectedLession = useSelector((state: RootState) => state.lession.selectedLession);
-  if (!selectedLession ) {
-    return <Text>No lesson selected</Text>;
-  }
-
   const scrollViewRef = useRef<ScrollView>(null);
 
-  const handleSend = async () => {
-    if (!userInput.trim()) return;
+  // manager back to screen before
+  const navigation = useNavigation();
 
-    const newMessage: { from: 'user'; text: string } = { from: 'user', text: userInput };
-    setMessages(prev => [...prev, newMessage]);
+  useEffect(() => {
+    const unsubscribe = navigation.addListener('beforeRemove', (e) => {
+      e.preventDefault();
+
+      Alert.alert(
+        'Xác nhận',
+        'Bạn có muốn quay lại không?',
+        [
+          { text: 'Hủy', style: 'cancel' },
+          {
+            text: 'Có',
+            style: 'destructive',
+            onPress: () => {
+              Speech.stop();
+              navigation.dispatch(e.data.action);
+            },
+          },
+        ]
+      );
+    });
+
+    return unsubscribe;
+  }, [navigation]);
+
+  useFocusEffect(
+    React.useCallback(() => {
+      return () => {
+        Speech.stop();
+      };
+    }, [])
+  );
+
+  // Load lịch sử chat khi lesson thay đổi
+  useEffect(() => {
+  if (!selectedLession) return;
+
+  fetchChatlog('68917f4d310af0a917685528', selectedLession._id)
+    .then((res) => {
+      if (!res || !res.data || !res.data.messages) {
+        setMessages([]); // Không có dữ liệu thì set rỗng
+        return;
+      }
+      
+      const chatlogData = res.data;
+      if (chatlogData?.messages) {
+        setMessages(
+          chatlogData.messages.map((m: any) => ({
+            from: m.role,
+            text: m.content
+          }))
+        );
+      }
+    })
+    .catch(console.error);
+}, [selectedLession?._id]);
+
+
+  const handleSend = async () => {
+    if (!userInput.trim() || !selectedLession) return;
+
+    const newMessage = { from: 'user' as const, text: userInput };
+    setMessages((prev) => [...prev, newMessage]);
+
+    const sendData = {
+      sessionId: '1234',
+      userId: '68917f4d310af0a917685528',
+      lessionId: selectedLession._id,
+      userSpeechText: userInput,
+    };
+
+    setUserInput('');
 
     try {
-      const data = {
-        sessionId: '1234',
-        userId: '68917f4d310af0a917685528',
-        lessionId: selectedLession._id,
-        userSpeechText: userInput
-      };
-      
-      setUserInput('');
+      const aiData = await fetchAI(sendData);
+      const aiReply = aiData.aiReplyText;
 
-      fetchAI(data)
-        .then( async (data) => {
-          const aiReply = data.aiReplyText;
-          setMessages(prev => [...prev, { from: 'ai', text: aiReply }]);
-          await speak(aiReply);;
-        })
-        .catch(console.error);
+      setMessages((prev) => [...prev, { from: 'ai', text: aiReply }]);
+      await speak(aiReply);
     } catch (error) {
       console.error(error);
     }
   };
 
-  // Scroll xuống cuối mỗi khi có tin nhắn mới
+  // Scroll xuống cuối khi có tin nhắn mới
   useEffect(() => {
     scrollViewRef.current?.scrollToEnd({ animated: true });
   }, [messages]);
+
+  if (!selectedLession) {
+    return <Text>No lesson selected</Text>;
+  }
+
+  if (!messages) {
+    return (
+      <View>
+        <Text>Loading...</Text>
+      </View>
+    );
+  }
 
   return (
     <KeyboardAvoidingView
       style={{ flex: 1 }}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      keyboardVerticalOffset={Platform.OS === 'ios' ? 80 : 0} // Tùy chỉnh offset cho bàn phím ios
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 80 : 0}
     >
       <View style={{ flex: 1 }}>
         <Text style={styles.title}>{selectedLession.title}</Text>
@@ -101,7 +168,6 @@ const LearningWithAI = () => {
             onChangeText={setUserInput}
             placeholder="Ask me anything in English..."
             style={styles.input}
-            autoFocus
             returnKeyType="send"
             onSubmitEditing={handleSend}
           />
@@ -147,7 +213,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginHorizontal: 16,
     marginVertical: 8,
-    paddingBottom: Platform.OS === 'ios' ? 20 : 0, // tránh bị che trên ios
+    paddingBottom: Platform.OS === 'ios' ? 20 : 0,
   },
   input: {
     flex: 1,

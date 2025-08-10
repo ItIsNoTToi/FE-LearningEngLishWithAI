@@ -13,14 +13,25 @@ import VocabularyPage from '../screens/Vocabulary';
 import QuizTest from '../screens/QuizTest';
 import Listening from '../screens/Listening';
 import ListQuizTopic from '../screens/ListQuizTopic';
+import ReadingTopicsScreen from '../screens/ReadingTopicsScreen';
+import ReadingDetailScreen from '../screens/ReadingDetailScreen';
+import { ReadingTopic } from '../models/ReadingTopic';
+import Lession from '../models/lession';
+
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
 const QuizStack = createStackNavigator<QuizStackParamList>();
+const ReadStack = createStackNavigator<ReadStackParamList>();
 
 export type QuizStackParamList = {
   QuizTopic: undefined;
   Test: { quizId: string; quizTitle: string };
+}
+
+export type ReadStackParamList = {
+  ReadingTopics: undefined;
+  ReadingDetail: { item: Lession }
 }
 
 function MainTabs() {
@@ -97,6 +108,23 @@ function QuizTabs() {
   );
 }
 
+function ReadingTabs() {
+  return (
+    <ReadStack.Navigator screenOptions={{ headerShown: false }}>
+      <ReadStack.Screen
+        name="ReadingTopics"
+        component={ReadingTopicsScreen}
+        options={{ title: 'Reading Topics' }}
+      />
+      <ReadStack.Screen
+        name="ReadingDetail"
+        component={ReadingDetailScreen}
+        options={{ title: 'Reading Detail' }}
+      />
+    </ReadStack.Navigator>
+  );
+}
+
 export default function AppNavigation() {
   return (
     <Stack.Navigator>
@@ -108,9 +136,14 @@ export default function AppNavigation() {
       />
       {/* Màn phụ - mở từ ListLesson */}
       <Stack.Screen
+        name="Reading"
+        component={ReadingTabs}
+        options={{ title: 'Reading', headerShown: false }}
+      />
+      <Stack.Screen
         name="LearningWithAI"
         component={LearningWithAI}
-        options={{ title: 'Learning with AI', headerShown: false }}
+        options={{ title: 'Learning With AI', headerShown: false }}
       />
       <Stack.Screen
         name="QuizTest"
