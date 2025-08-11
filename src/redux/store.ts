@@ -1,9 +1,9 @@
 import { configureStore } from '@reduxjs/toolkit'
-import LessionReducer from '../features/lession/lession.store';
+import LessonReducer from '../features/lesson/lesson.store';
 
 export const store =  configureStore({
   reducer: {
-    lession: LessionReducer,
+    lesson: LessonReducer,
   }
 })
 

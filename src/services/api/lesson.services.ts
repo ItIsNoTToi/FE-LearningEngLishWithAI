@@ -1,8 +1,8 @@
 import axios from "../../config/axiosconfig";
 
-export const getLession = async (): Promise<any> => {
+export const getLesson = async (): Promise<any> => {
     try {
-        const response = await axios.get('/api/lessions');
+        const response = await axios.get('/api/lessons');
 
         // console.log(response.data);
 

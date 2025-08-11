@@ -1,4 +1,4 @@
-import Lession from "./lession"
+import Lesson from "./lesson"
 import user from "./user"
 
 export interface chatlog{
@@ -10,6 +10,6 @@ export interface chatlog{
             timestamp: Date
         }
     ],
-  lession: Lession,
+  lesson: Lesson,
   createdAt: Date
 }

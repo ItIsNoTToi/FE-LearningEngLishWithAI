@@ -3,8 +3,8 @@ import { View, Text, FlatList, TouchableOpacity, StyleSheet } from 'react-native
 import { ReadingTopic } from '../models/ReadingTopic';
 import { ReadStackParamList } from '../navigation/AppStack';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { getLession } from '../services/api/lession.services';
-import Lession from '../models/lession';
+import { getLesson } from '../services/api/lesson.services';
+import Lession from '../models/lesson';
 
 type Props = NativeStackScreenProps<ReadStackParamList, 'ReadingTopics'>;
 
@@ -12,7 +12,7 @@ type Props = NativeStackScreenProps<ReadStackParamList, 'ReadingTopics'>;
     const [topics, setTopics] = useState<Lession[]>([]);
 
     useEffect(() => {
-        getLession()
+        getLesson()
         .then(data => setTopics(data.data));
     }, []);
 

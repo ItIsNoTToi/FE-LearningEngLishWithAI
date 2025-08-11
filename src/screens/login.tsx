@@ -2,6 +2,11 @@ import React, { useState } from 'react';
 import { StyleSheet, Text, View, TouchableOpacity, Image, TextInput, KeyboardAvoidingView } from 'react-native';
 import { useAuth } from '../hooks/AuthContext';
 import { fetchLogin } from '../services/api/auth.services';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+export async function saveToken(token: string) {
+   await AsyncStorage.setItem('authToken', token);
+}
 
 export default function Login({ navigation }: any) {
   const { login } = useAuth();
@@ -21,7 +26,8 @@ export default function Login({ navigation }: any) {
 
         fetchLogin( data )
           .then(data => {
-            console.log("Login successful:", data);
+            //console.log("Login successful:", data);
+            saveToken(data.token);
             data.success ? login() : alert('Login failed. Please check your credentials.');
           })
           .catch(error => {

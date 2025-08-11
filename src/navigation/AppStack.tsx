@@ -5,7 +5,7 @@ import { faHome, faRobot, faUser, faTrophy, faChartLine } from '@fortawesome/fre
 
 import HomeScreen from '../screens/index';
 import ProfileScreen from '../screens/ProfileScreen';
-import ListLesson from '../screens/ListLession';
+import ListLesson from '../screens/ListLesson';
 import RankingScreen from '../screens/RankingScreen';
 import CompetitionScreen from '../screens/CompetitionScreen';
 import LearningWithAI from '../screens/LearningWithAI';
@@ -15,14 +15,14 @@ import Listening from '../screens/Listening';
 import ListQuizTopic from '../screens/ListQuizTopic';
 import ReadingTopicsScreen from '../screens/ReadingTopicsScreen';
 import ReadingDetailScreen from '../screens/ReadingDetailScreen';
-import { ReadingTopic } from '../models/ReadingTopic';
-import Lession from '../models/lession';
-
+import Lesson from '../models/lesson';
+import Progress from '../screens/progressScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
 const QuizStack = createStackNavigator<QuizStackParamList>();
 const ReadStack = createStackNavigator<ReadStackParamList>();
+const ProfileStack = createStackNavigator<ProfileStackParamList>();
 
 export type QuizStackParamList = {
   QuizTopic: undefined;
@@ -31,8 +31,14 @@ export type QuizStackParamList = {
 
 export type ReadStackParamList = {
   ReadingTopics: undefined;
-  ReadingDetail: { item: Lession }
+  ReadingDetail: { item: Lesson }
 }
+
+export type ProfileStackParamList = {
+  Profile: undefined;
+  Progress: { userId: string };
+};
+
 
 function MainTabs() {
   return (
@@ -48,10 +54,10 @@ function MainTabs() {
         }}
       />
       <Tab.Screen
-        name="ListLession"
+        name="ListLesson"
         component={ListLesson}
         options={{
-          title: 'List Lession',
+          title: 'List Lesson',
           tabBarIcon: ({ color, size }) => (
             <FontAwesomeIcon icon={faRobot} color={color} size={size} />
           ),
@@ -124,6 +130,7 @@ function ReadingTabs() {
     </ReadStack.Navigator>
   );
 }
+
 
 export default function AppNavigation() {
   return (

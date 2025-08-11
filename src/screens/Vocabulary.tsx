@@ -52,7 +52,6 @@ export default function VocabularyPage() {
         style={{ flex: 1 }}
       >
         <Text style={styles.title}>Vocabulary</Text>
-
         <TextInput
           style={styles.searchInput}
           placeholder="Search word..."
@@ -62,7 +61,6 @@ export default function VocabularyPage() {
           autoCapitalize="none"
           clearButtonMode="while-editing"
         />
-
         <FlatList
           data={filteredData}
           keyExtractor={(item) => item.id}

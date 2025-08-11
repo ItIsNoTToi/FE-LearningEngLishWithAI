@@ -9,7 +9,7 @@ export default function RootNavigator() {
 
     return (
         <NavigationContainer>
-        {!isLoggedIn ? <AppStack /> : <AuthStack />}
+        {isLoggedIn ? <AppStack /> : <AuthStack />}
         </NavigationContainer>
     );
 }

@@ -1,11 +1,31 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, Image, Button } from 'react-native';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { faBars } from '@fortawesome/free-solid-svg-icons';
+import User from '../models/user';
+import { getProfile } from '../services/api/user.services';
+import Progress from './progressScreen';
+import { ScrollView } from 'react-native-gesture-handler';
 
 export default function ProfileScreen() {
+  const [user, setUser] = useState<User>();
+  
+  useEffect(( ) => {
+    getProfile()
+    .then(data => {
+      // console.log('data:2',data.data);
+      setUser(data.data);
+    })
+    .catch(error => console.error(error));
+  },[]);
+
+  // if(user){
+  //   console.log('user2', user._id);
+  // }
+
   return (
-    <View style={styles.container}>
+    <ScrollView>
+      <View style={styles.container}>
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignContent: 'center', width: '100%', paddingTop: 20,}}>
             <View style={{justifyContent: 'flex-end', alignItems: 'flex-start', width: '30%'}}>
             </View>
@@ -20,7 +40,7 @@ export default function ProfileScreen() {
             </View>
         </View>
       
-        <Text style={styles.username}>@yourusername</Text>
+        <Text style={styles.username}>{user?.username}</Text>
         <Text style={styles.bio}>Giới thiệu bản thân ở đây...</Text>
 
         <View style={styles.statsContainer}>
@@ -39,13 +59,24 @@ export default function ProfileScreen() {
         </View>
 
         <Button title="Chỉnh sửa hồ sơ" onPress={() => {}} />
-    </View>
+        <View style={{
+          padding: 30,
+          justifyContent:'flex-start',
+          width: '100%',
+          backgroundColor: '#fff',
+          flex: 1,
+        }}>
+          {user?._id && <Progress userId={user?._id}/>}
+        </View>
+      </View>
+        
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    padding: 20,
+    padding: 30,
     alignItems: 'center',
     backgroundColor: '#fff',
     flex: 1,

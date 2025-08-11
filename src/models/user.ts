@@ -1,9 +1,10 @@
 export default interface user{
-    username:   String,
-    email:      String,
-    password:   String,
-    Phone:      String,
-    isActive:   Boolean,
+    _id: string,
+    username:   string,
+    email:      string,
+    password:   string,
+    Phone:      string,
+    isActive:   boolean,
     lastLogin:  Date,
     createdAt:  Date,
     updatedAt:  Date
