@@ -26,14 +26,21 @@ export default function Register({ navigation }: any) {
           password: password.trim(),
         }
 
+        // console.log(userData);
+
         await fetchRegister(userData)
         .then((data) => {
-          console.log(data);
+          // console.log(data);
           data.success ? login() : alert('Login failed. Please check your credentials.');
         })
-        .catch((error) => {
-          console.error(error);
-        })
+        .catch((error: any) => {
+          if (error.status === 400) {
+            alert(error.message || 'Username, email, or phone number already exists');
+          } else {
+            alert('Something went wrong: ' + error.message);
+          }
+        });
+
       }
     } else {
       alert('You must fill all the fields');

@@ -36,18 +36,15 @@ export default function ListLesson() {
   );
 
   return (
-    <ScrollView>
-      <View style={styles.container}>
-        <Text style={styles.header}>Lessions</Text>
-        <FlatList
-          data={lessons}
-          keyExtractor={(item) => item._id}
-          renderItem={renderLesson}
-          contentContainerStyle={styles.list}
-        />
-      </View>
-    </ScrollView>
-    
+    <View style={styles.container}>
+      <Text style={styles.header}>Lessions</Text>
+      <FlatList
+        data={lessons}
+        keyExtractor={(item) => item._id}
+        renderItem={renderLesson}
+        contentContainerStyle={styles.list}
+      />
+    </View>    
   );
 }
 
