@@ -2,7 +2,7 @@
 export default interface Vocabulary{
     id: string;
     word: string;
-    definition: string;
+    meaning: string;
     example: string[];
 }
 

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -13,18 +13,28 @@ import {
 } from 'react-native';
 import Vocabulary from '../models/vocabulary';
 import VocabularyExplain from './VocabularyExplain';
+import { GetVocabulary } from '../services/api/vocabulary.servics';
 
-const SAMPLE_VOCAB: Vocabulary[] = [
-  { id: '1', word: 'Abate', definition: 'To become less intense or widespread.', example: ['The storm will abate by tomorrow.'] },
-  { id: '2', word: 'Benevolent', definition: 'Well meaning and kindly.', example: ['She had a benevolent smile.'] },
-  // Add more words here...
-];
+// const SAMPLE_VOCAB: Vocabulary[] = [
+//   { id: '1', word: 'Abate', definition: 'To become less intense or widespread.', example: ['The storm will abate by tomorrow.'] },
+//   { id: '2', word: 'Benevolent', definition: 'Well meaning and kindly.', example: ['She had a benevolent smile.'] },
+//   // Add more words here...
+// ];
 
 export default function VocabularyPage() {
   const [search, setSearch] = useState('');
   const [selectedWord, setSelectedWord] = useState<Vocabulary | null>(null);
+  const [vocabulary, setVocabulary] = useState<Vocabulary[]>([]);
 
-  const filteredData = SAMPLE_VOCAB.filter(item =>
+  useEffect(()=>{
+    GetVocabulary()
+    .then( (data) => {
+      console.log(data.data);
+      setVocabulary(data.data);
+    })
+  },[])
+
+  const filteredData = vocabulary.filter(item =>
     item.word.toLowerCase().includes(search.toLowerCase())
   );
 
@@ -34,7 +44,7 @@ export default function VocabularyPage() {
       <SafeAreaView style={{ flex: 1, }}>
         <VocabularyExplain
           word={selectedWord.word}
-          definition={selectedWord.definition}
+          definition={selectedWord.meaning}
           example={selectedWord.example[0]} // lấy ví dụ đầu tiên nếu có
         />
         <View style={{ padding: 16 }}>
@@ -67,7 +77,7 @@ export default function VocabularyPage() {
           renderItem={({ item }) => (
             <TouchableOpacity style={styles.itemContainer} onPress={() => setSelectedWord(item)}>
               <Text style={styles.word}>{item.word}</Text>
-              <Text style={styles.definition}>{item.definition}</Text>
+              <Text style={styles.definition}>{item.meaning}</Text>
             </TouchableOpacity>
           )}
           contentContainerStyle={{ paddingBottom: 20 }}

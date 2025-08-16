@@ -23,3 +23,10 @@ export const getProfile = async () => {
     throw error;
   }
 };
+
+export const logout_fe = async () => {
+  // FE (mobile/web)
+  await AsyncStorage.removeItem("authToken");
+  const response = await axios.post('/admin/logout-fe');
+  return response.data;
+}

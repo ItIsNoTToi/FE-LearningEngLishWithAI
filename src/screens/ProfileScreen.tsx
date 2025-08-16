@@ -1,15 +1,16 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, Image, Button } from 'react-native';
+import { View, Text, StyleSheet, Image, Button, TouchableOpacity } from 'react-native';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { faBars } from '@fortawesome/free-solid-svg-icons';
 import User from '../models/user';
-import { getProfile } from '../services/api/user.services';
+import { getProfile, logout_fe } from '../services/api/user.services';
 import Progress from './progressScreen';
 import { ScrollView } from 'react-native-gesture-handler';
+import { useAuth } from '../hooks/AuthContext';
 
 export default function ProfileScreen() {
   const [user, setUser] = useState<User>();
-  
+  const { logout } = useAuth();
   useEffect(( ) => {
     getProfile()
     .then(data => {
@@ -23,6 +24,14 @@ export default function ProfileScreen() {
   //   console.log('user2', user._id);
   // }
 
+  const logoutBtn = () =>{
+    logout_fe()
+    .then(data =>{
+      data.success ? logout(): alert("Can't logout");
+    })
+    
+  }
+
   return (
     <ScrollView>
       <View style={styles.container}>
@@ -35,9 +44,9 @@ export default function ProfileScreen() {
                     style={styles.avatar}
                 />
             </View>
-            <View style={{justifyContent: 'flex-start', alignItems: 'flex-end', width: '30%'}}>
+            <TouchableOpacity style={{justifyContent: 'flex-start', alignItems: 'flex-end', width: '30%'}} onPress={logoutBtn}>
                 <FontAwesomeIcon icon={faBars} size={28} color="black" />
-            </View>
+            </TouchableOpacity>
         </View>
       
         <Text style={styles.username}>{user?.username}</Text>
@@ -69,14 +78,15 @@ export default function ProfileScreen() {
           {user?._id && <Progress userId={user?._id}/>}
         </View>
       </View>
-        
     </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    padding: 30,
+    width: '100%',
+    height: 600,
+    paddingTop: 30,
     alignItems: 'center',
     backgroundColor: '#fff',
     flex: 1,
