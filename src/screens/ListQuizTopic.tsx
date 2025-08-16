@@ -1,7 +1,9 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, FlatList, TouchableOpacity, StyleSheet } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { QuizStackParamList } from '../navigation/AppStack';
+import { Quiz } from '../models/quiz';
+import { GetQuiz } from '../services/api/quiz.services';
 
 type Props = NativeStackScreenProps<QuizStackParamList, 'QuizTopic'>;
 
@@ -11,10 +13,17 @@ const QUIZZES = [
 ];
 
 const ListQuizTopic = ({ navigation }: Props) => {
+  const [Quizzes, setQuizzes] = useState<Quiz[]>([]);
+
+  useEffect(() =>{
+    GetQuiz()
+    .then( data => setQuizzes(data.data));
+  },[])
+  
   return (
     <View style={{ flex: 1, padding: 16, paddingTop: 60, }}>
       <FlatList
-        data={QUIZZES}
+        data={Quizzes}
         keyExtractor={item => item.id}
         renderItem={({ item }) => (
           <TouchableOpacity
