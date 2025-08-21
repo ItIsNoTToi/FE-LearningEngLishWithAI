@@ -6,23 +6,32 @@ const QUESTIONS: Question[] = [
   {
     id: '1',
     question: 'What does "Abate" mean?',
-    options: ['To increase', 'To become less intense', 'To talk a lot', 'To build'],
-    correctIndex: 1,
+    options: [
+      { text: 'To increase' },
+      { text: 'To become less intense', isCorrect: true },
+      { text: 'To talk a lot' },
+      { text: 'To build' }
+    ],
+    explanation: ''
   },
   {
     id: '2',
     question: 'Choose the synonym of "Benevolent".',
-    options: ['Kind', 'Evil', 'Sad', 'Lazy'],
-    correctIndex: 0,
-  },
-  // Thêm câu hỏi nếu cần
+    options: [
+      { text: 'Kind', isCorrect: true },
+      { text: 'Cruel' },
+      { text: 'Indifferent' },
+      { text: 'Hostile' }
+    ],
+    explanation: ''
+  }
 ];
 
 export default function QuizTest() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [selectedOption, setSelectedOption] = useState<number | null>(null);
   const [showResult, setShowResult] = useState(false);
-
+  
   const question = QUESTIONS[currentIndex];
 
   const onSelectOption = (index: number) => {
@@ -49,7 +58,7 @@ export default function QuizTest() {
 
       {question.options.map((option, idx) => {
         const isSelected = idx === selectedOption;
-        const isCorrect = idx === question.correctIndex;
+        const isCorrect = !!option.isCorrect; // check trực tiếp trong option
         let backgroundColor = '#eee';
 
         if (showResult) {
@@ -69,7 +78,7 @@ export default function QuizTest() {
             onPress={() => onSelectOption(idx)}
             disabled={showResult}
           >
-            <Text style={styles.optionText}>{option}</Text>
+            <Text style={styles.optionText}>{option.text}</Text>
           </TouchableOpacity>
         );
       })}
@@ -77,7 +86,9 @@ export default function QuizTest() {
       {showResult && (
         <View style={styles.resultContainer}>
           <Text style={{ fontSize: 18 }}>
-            {selectedOption === question.correctIndex ? 'Correct!' : 'Wrong!'}
+            {selectedOption !== null && question.options[selectedOption].isCorrect
+              ? 'Correct!'
+              : 'Wrong!'}
           </Text>
           <Button title="Next" onPress={onNext} />
         </View>
