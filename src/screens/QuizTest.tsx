@@ -1,64 +1,84 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react'; 
 import { View, Text, TouchableOpacity, StyleSheet, SafeAreaView, Button } from 'react-native';
 import { Question } from '../models/question';
+import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { QuizStackParamList } from '../navigation/AppStack';
+import { getQuestionByQuizId, SaveHistoryQuiz } from '../services/api/quiz.services';
 
-const QUESTIONS: Question[] = [
-  {
-    id: '1',
-    question: 'What does "Abate" mean?',
-    options: [
-      { text: 'To increase' },
-      { text: 'To become less intense', isCorrect: true },
-      { text: 'To talk a lot' },
-      { text: 'To build' }
-    ],
-    explanation: ''
-  },
-  {
-    id: '2',
-    question: 'Choose the synonym of "Benevolent".',
-    options: [
-      { text: 'Kind', isCorrect: true },
-      { text: 'Cruel' },
-      { text: 'Indifferent' },
-      { text: 'Hostile' }
-    ],
-    explanation: ''
-  }
-];
+type Props = NativeStackScreenProps<QuizStackParamList, 'Test'>;
 
-export default function QuizTest() {
+export default function QuizTest({ route, navigation }: Props) {
+  const { quizId } = route.params;
+
+  const [questions, setQuestions] = useState<Question[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [selectedOption, setSelectedOption] = useState<number | null>(null);
   const [showResult, setShowResult] = useState(false);
-  
-  const question = QUESTIONS[currentIndex];
+  const [score, setScore] = useState(0);
+  const [totalscore, setTotalScore] = useState(0);
+
+  useEffect(() => {
+    getQuestionByQuizId(quizId)
+      .then(data => {
+        // console.log(data);
+        // Kiểm tra nếu data.data tồn tại và có ít nhất một câu hỏi
+        if (data?.data?.length > 0) {
+          setQuestions(data.data);
+          setTotalScore(data.score);
+        }
+      })
+      .catch(error => console.error('Error fetching questions:', error));
+  }, [quizId]);
+
+  if (questions.length === 0) {
+    return <Text>Loading...</Text>;
+  }
+
+  const question = questions[currentIndex];
 
   const onSelectOption = (index: number) => {
     if (selectedOption === null) {
       setSelectedOption(index);
       setShowResult(true);
+
+      // Nếu chọn đúng thì cộng điểm
+      if (question.options[index].isCorrect) {
+        setScore(prev => prev + totalscore / questions.length);
+      }
     }
   };
 
   const onNext = () => {
     setSelectedOption(null);
     setShowResult(false);
-    if (currentIndex < QUESTIONS.length - 1) {
+
+    if (currentIndex < questions.length - 1) {
       setCurrentIndex(currentIndex + 1);
     } else {
-      alert('Quiz finished!');
-      setCurrentIndex(0);
+      const percent = (score / questions.length) * 100;
+
+      SaveHistoryQuiz(quizId, score, questions.length, percent)
+        .then((data) => {
+          if (data.success) {
+            navigation.navigate("Result", {
+              score,
+              total: questions.length,
+              totalscore, // ví dụ 100
+              quizId
+            });
+          }
+        })
+        .catch(error => console.error('Error saving quiz history:', error));
     }
   };
 
   return (
     <SafeAreaView style={styles.container}>
-      <Text style={styles.questionText}>{question.question}</Text>
+      <Text style={styles.questionText}>{question.questionText}</Text>
 
       {question.options.map((option, idx) => {
         const isSelected = idx === selectedOption;
-        const isCorrect = !!option.isCorrect; // check trực tiếp trong option
+        const isCorrect = !!option.isCorrect;
         let backgroundColor = '#eee';
 
         if (showResult) {
@@ -73,7 +93,7 @@ export default function QuizTest() {
 
         return (
           <TouchableOpacity
-            key={idx}
+            key={option._id}
             style={[styles.optionButton, { backgroundColor }]}
             onPress={() => onSelectOption(idx)}
             disabled={showResult}
@@ -90,7 +110,15 @@ export default function QuizTest() {
               ? 'Correct!'
               : 'Wrong!'}
           </Text>
-          <Button title="Next" onPress={onNext} />
+
+          {/* hiện explanation nếu có */}
+          {question.explanation && (
+            <Text style={{ marginTop: 8, fontStyle: 'italic' }}>
+              {question.explanation}
+            </Text>
+          )}
+
+          <Button title={currentIndex === questions.length - 1 ? "Finish" : "Next"} onPress={onNext} />
         </View>
       )}
     </SafeAreaView>

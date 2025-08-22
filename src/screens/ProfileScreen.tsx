@@ -77,6 +77,9 @@ export default function ProfileScreen() {
         }}>
           {user?._id && <Progress userId={user?._id}/>}
         </View>
+        <TouchableOpacity style={{ backgroundColor: "#2196F3", margin: 40, justifyContent: 'center', alignItems: 'center', padding: 10, borderRadius: 8 }} onPress={logoutBtn}>
+          <Text>Log out</Text>
+        </TouchableOpacity>
       </View>
     </ScrollView>
   );

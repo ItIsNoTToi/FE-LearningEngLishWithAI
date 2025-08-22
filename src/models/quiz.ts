@@ -1,8 +1,8 @@
 import Lesson from './lesson';
-import Question from './question';
+import { Question } from './question';
 
 export interface Quiz {
-    id: string,
+    _id: string,
     title: string,
     description: string,
     status: 'not started' | 'in progress' | 'completed', // union type thay cho enum mongoose

@@ -7,10 +7,10 @@ import { GetQuiz } from '../services/api/quiz.services';
 
 type Props = NativeStackScreenProps<QuizStackParamList, 'QuizTopic'>;
 
-const QUIZZES = [
-  { id: '1', title: 'Vocabulary Basics' },
-  { id: '2', title: 'Advanced Words' },
-];
+// const QUIZZES = [
+//   { id: '1', title: 'Vocabulary Basics' },
+//   { id: '2', title: 'Advanced Words' },
+// ];
 
 const ListQuizTopic = ({ navigation }: Props) => {
   const [Quizzes, setQuizzes] = useState<Quiz[]>([]);
@@ -19,16 +19,26 @@ const ListQuizTopic = ({ navigation }: Props) => {
     GetQuiz()
     .then( data => setQuizzes(data.data));
   },[])
+
+  // console.log(Quizzes);
   
   return (
     <View style={{ flex: 1, padding: 16, paddingTop: 60, }}>
+      <TouchableOpacity
+          style={{ backgroundColor: "#2196F3", margin: 40, justifyContent: 'center', alignItems: 'center', padding: 10, borderRadius: 8 }}
+          onPress={() =>
+            navigation.replace("MainTabs" as any) 
+          }
+      >
+          <Text >Home</Text>
+      </TouchableOpacity>
       <FlatList
         data={Quizzes}
-        keyExtractor={item => item.id}
+        keyExtractor={item => item._id}
         renderItem={({ item }) => (
           <TouchableOpacity
             style={styles.item}
-            onPress={() => navigation.navigate('Test', { quizId: item.id, quizTitle: item.title })}
+            onPress={() => navigation.navigate('Test', { quizId: item._id })}
           >
             <Text style={styles.title}>{item.title}</Text>
           </TouchableOpacity>

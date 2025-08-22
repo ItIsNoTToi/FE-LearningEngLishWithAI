@@ -17,6 +17,7 @@ import ReadingTopicsScreen from '../screens/ReadingTopicsScreen';
 import ReadingDetailScreen from '../screens/ReadingDetailScreen';
 import Lesson from '../models/lesson';
 import Progress from '../screens/progressScreen';
+import ResultScreen from '../screens/ResultScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
@@ -26,7 +27,8 @@ const ProfileStack = createStackNavigator<ProfileStackParamList>();
 
 export type QuizStackParamList = {
   QuizTopic: undefined;
-  Test: { quizId: string; quizTitle: string };
+  Test: { quizId: string;};
+  Result: { score: number; total: number; totalscore: number; quizId: string; };
 }
 
 export type ReadStackParamList = {
@@ -109,6 +111,11 @@ function QuizTabs() {
         name="Test"
         component={QuizTest}
         options={{ title: 'Test' }}
+      />
+      <QuizStack.Screen
+        name="Result"
+        component={ResultScreen}
+        options={{ title: 'Result' }}
       />
     </QuizStack.Navigator>
   );
