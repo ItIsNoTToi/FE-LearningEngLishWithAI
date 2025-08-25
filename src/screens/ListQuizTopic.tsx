@@ -7,31 +7,25 @@ import { GetQuiz } from '../services/api/quiz.services';
 
 type Props = NativeStackScreenProps<QuizStackParamList, 'QuizTopic'>;
 
-// const QUIZZES = [
-//   { id: '1', title: 'Vocabulary Basics' },
-//   { id: '2', title: 'Advanced Words' },
-// ];
-
 const ListQuizTopic = ({ navigation }: Props) => {
   const [Quizzes, setQuizzes] = useState<Quiz[]>([]);
 
   useEffect(() =>{
     GetQuiz()
-    .then( data => setQuizzes(data.data));
+    .then(data => setQuizzes(data.data));
   },[])
 
-  // console.log(Quizzes);
-  
   return (
-    <View style={{ flex: 1, padding: 16, paddingTop: 60, }}>
+    <View style={styles.container}>
       <TouchableOpacity
-          style={{ backgroundColor: "#2196F3", margin: 40, justifyContent: 'center', alignItems: 'center', padding: 10, borderRadius: 8 }}
-          onPress={() =>
-            navigation.replace("MainTabs" as any) 
-          }
+        style={styles.homeButton}
+        onPress={() => navigation.replace("MainTabs" as any)}
       >
-          <Text >Home</Text>
+        <Text style={styles.homeText}>🏠 Home</Text>
       </TouchableOpacity>
+
+      <Text style={styles.header}>📘 Quiz Topics</Text>
+
       <FlatList
         data={Quizzes}
         keyExtractor={item => item._id}
@@ -49,13 +43,53 @@ const ListQuizTopic = ({ navigation }: Props) => {
 };
 
 const styles = StyleSheet.create({
-  item: {
-    padding: 16,
-    backgroundColor: '#eee',
-    marginBottom: 12,
-    borderRadius: 8,
+  container: { 
+    flex: 1, 
+    padding: 16, 
+    paddingTop: 50, 
+    backgroundColor: '#f9fafc' 
   },
-  title: { fontSize: 18, fontWeight: 'bold' },
+  header: {
+    fontSize: 24,
+    fontWeight: '700',
+    marginBottom: 20,
+    color: '#333',
+    textAlign: 'center',
+  },
+  homeButton: {
+    backgroundColor: "#4f9deb",
+    marginBottom: 20,
+    alignSelf: "center",
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 10,
+    shadowColor: "#000",
+    shadowOpacity: 0.2,
+    shadowOffset: { width: 0, height: 2 },
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  homeText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "600",
+  },
+  item: {
+    padding: 20,
+    backgroundColor: '#ffffff',
+    marginBottom: 14,
+    borderRadius: 12,
+    shadowColor: "#000",
+    shadowOpacity: 0.08,
+    shadowOffset: { width: 0, height: 3 },
+    shadowRadius: 5,
+    elevation: 2,
+  },
+  title: { 
+    fontSize: 18, 
+    fontWeight: '600',
+    color: "#333"
+  },
 });
 
 export default ListQuizTopic;

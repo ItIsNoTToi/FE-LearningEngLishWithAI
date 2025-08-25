@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { Ionicons } from "@expo/vector-icons";
 import {
   View,
   Text,
@@ -9,10 +10,11 @@ import {
   Platform,
   KeyboardAvoidingView,
   Alert,
+  FlatList,
 } from 'react-native';
 import * as Speech from 'expo-speech';
 import type { chatlog } from '../models/chatlog'; // chỉ import type
-import { fetchAI, startLessonAI, EndLessonAI } from '../services/api/AI.services';
+import { fetchAIStream, startLessonAI, EndLessonAI } from '../services/api/AI.services';
 import { fetchChatlog } from '../services/api/chatlog.services';
 import type { RootState } from '../redux/store';
 import { useSelector } from 'react-redux';
@@ -34,7 +36,7 @@ const LearningWithAI = () => {
   const [user, setUser] = useState<User>();
 
   const selectedLesson = useSelector((state: RootState) => state.lesson.selectedLesson);
-  const scrollViewRef = useRef<ScrollView>(null);
+  const scrollViewRef = useRef<FlatList<{ from: 'user' | 'ai'; text: string }> | null>(null);
 
   // manager back to screen before
   const navigation = useNavigation();
@@ -66,7 +68,9 @@ const LearningWithAI = () => {
             onPress: async () => {
               Speech.stop();
               try {
-                await EndLessonAI(user?._id, selectedLesson?._id);
+                await EndLessonAI(user?._id, selectedLesson?._id)
+                .then(data => alert(`${data.message}`))
+                .catch(console.error);
               } catch (err) {
                 console.error("Failed to finish lesson:", err);
               }
@@ -134,12 +138,25 @@ const LearningWithAI = () => {
 
     setUserInput('');
 
-    try {
-      const aiData = await fetchAI(sendData);
-      const aiReply = aiData.aiReplyText;
+    // bắt đầu 1 message rỗng cho AI
+    setMessages((prev) => [...prev, { from: 'ai', text: '' }]);
 
-      setMessages((prev) => [...prev, { from: 'ai', text: aiReply }]);
-      await speak(aiReply);
+    try {
+      await fetchAIStream(
+        sendData,
+        (delta: any) => {
+          setMessages((prev) => {
+            const last = prev[prev.length - 1];
+            if (last.from === 'ai') {
+              return [...prev.slice(0, -1), { ...last, text: last.text + delta }];
+            }
+            return prev;
+          });
+        },
+        () => {
+          console.log("AI finished response");
+        }
+      );
     } catch (error) {
       console.error(error);
     }
@@ -171,34 +188,35 @@ const LearningWithAI = () => {
       <View style={{ flex: 1 }}>
         <Text style={styles.title}>{selectedLesson.title}</Text>
 
-        <ScrollView
-          style={styles.chatBox}
-          contentContainerStyle={{ paddingBottom: 20 }}
-          ref={scrollViewRef}
-          keyboardShouldPersistTaps="handled"
-        >
-          {messages.map((msg, idx) => (
-            <Text
-              key={idx}
-              style={msg.from === 'user' ? styles.userMessage : styles.aiMessage}
+        <FlatList
+          data={messages}
+          keyExtractor={(_, idx) => idx.toString()}
+          renderItem={({ item }) => (
+            <View
+              style={[
+                styles.messageBubble,
+                item.from === "user" ? styles.userBubble : styles.aiBubble,
+              ]}
             >
-              {msg.from === 'user' ? '🧑: ' : '🤖: '}
-              {msg.text}
-            </Text>
-          ))}
-        </ScrollView>
+              <Text style={styles.messageText}>{item.text}</Text>
+            </View>
+          )}
+          contentContainerStyle={{ padding: 16 }}
+          ref={scrollViewRef}
+          onContentSizeChange={() => scrollViewRef.current?.scrollToEnd({ animated: true })}
+        />
 
         <View style={styles.inputContainer}>
           <TextInput
             value={userInput}
             onChangeText={setUserInput}
-            placeholder="Ask me anything in English..."
+            placeholder="Type in English..."
             style={styles.input}
             returnKeyType="send"
             onSubmitEditing={handleSend}
           />
           <TouchableOpacity onPress={handleSend} style={styles.sendButton}>
-            <Text style={styles.sendText}>Send</Text>
+            <Ionicons name="send" size={22} color="#fff" />
           </TouchableOpacity>
         </View>
       </View>
@@ -248,11 +266,30 @@ const styles = StyleSheet.create({
     padding: 10,
     borderRadius: 8,
   },
+  sendText: { color: 'white', fontWeight: 'bold' },
+  messageBubble: {
+    padding: 12,
+    borderRadius: 16,
+    marginBottom: 8,
+    maxWidth: "80%",
+  },
+  userBubble: {
+    backgroundColor: "#007AFF",
+    alignSelf: "flex-end",
+  },
+  aiBubble: {
+    backgroundColor: "#E5E5EA",
+    alignSelf: "flex-start",
+  },
+  messageText: {
+    color: "#000",
+    fontSize: 16,
+  },
   sendButton: {
-    backgroundColor: '#007AFF',
-    padding: 10,
-    borderRadius: 8,
+    backgroundColor: "#007AFF",
+    padding: 12,
+    borderRadius: 24,
     marginLeft: 8,
   },
-  sendText: { color: 'white', fontWeight: 'bold' },
+
 });

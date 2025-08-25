@@ -1,3 +1,4 @@
+import Constants from 'expo-constants';
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 
@@ -19,6 +20,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     backgroundColor: '#fff',
     padding: 16,
+    marginTop: Constants.statusBarHeight,
   },
   title: {
     fontSize: 24,

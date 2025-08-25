@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'; 
-import { View, Text, TouchableOpacity, StyleSheet, SafeAreaView, Button } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, SafeAreaView } from 'react-native';
 import { Question } from '../models/question';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { QuizStackParamList } from '../navigation/AppStack';
@@ -20,8 +20,6 @@ export default function QuizTest({ route, navigation }: Props) {
   useEffect(() => {
     getQuestionByQuizId(quizId)
       .then(data => {
-        // console.log(data);
-        // Kiểm tra nếu data.data tồn tại và có ít nhất một câu hỏi
         if (data?.data?.length > 0) {
           setQuestions(data.data);
           setTotalScore(data.score);
@@ -41,7 +39,6 @@ export default function QuizTest({ route, navigation }: Props) {
       setSelectedOption(index);
       setShowResult(true);
 
-      // Nếu chọn đúng thì cộng điểm
       if (question.options[index].isCorrect) {
         setScore(prev => prev + totalscore / questions.length);
       }
@@ -63,7 +60,7 @@ export default function QuizTest({ route, navigation }: Props) {
             navigation.navigate("Result", {
               score,
               total: questions.length,
-              totalscore, // ví dụ 100
+              totalscore,
               quizId
             });
           }
@@ -74,21 +71,26 @@ export default function QuizTest({ route, navigation }: Props) {
 
   return (
     <SafeAreaView style={styles.container}>
+      {/* Thanh tiến độ */}
+      <View style={styles.progressContainer}>
+        <View style={[styles.progressBar, { width: `${((currentIndex+1)/questions.length)*100}%` }]} />
+      </View>
+
       <Text style={styles.questionText}>{question.questionText}</Text>
 
       {question.options.map((option, idx) => {
         const isSelected = idx === selectedOption;
         const isCorrect = !!option.isCorrect;
-        let backgroundColor = '#eee';
+        let backgroundColor = '#fff';
 
         if (showResult) {
           if (isSelected) {
-            backgroundColor = isCorrect ? '#4CAF50' : '#F44336';
+            backgroundColor = isCorrect ? '#d4edda' : '#f8d7da'; // xanh nhạt / đỏ nhạt
           } else if (isCorrect) {
-            backgroundColor = '#4CAF50';
+            backgroundColor = '#d4edda';
           }
         } else if (isSelected) {
-          backgroundColor = '#ccc';
+          backgroundColor = '#e0f7fa'; // xanh pastel khi chọn
         }
 
         return (
@@ -105,20 +107,21 @@ export default function QuizTest({ route, navigation }: Props) {
 
       {showResult && (
         <View style={styles.resultContainer}>
-          <Text style={{ fontSize: 18 }}>
+          <Text style={styles.resultText}>
             {selectedOption !== null && question.options[selectedOption].isCorrect
-              ? 'Correct!'
-              : 'Wrong!'}
+              ? '✅ Correct!'
+              : '❌ Wrong!'}
           </Text>
 
-          {/* hiện explanation nếu có */}
           {question.explanation && (
-            <Text style={{ marginTop: 8, fontStyle: 'italic' }}>
-              {question.explanation}
-            </Text>
+            <Text style={styles.explanation}>{question.explanation}</Text>
           )}
 
-          <Button title={currentIndex === questions.length - 1 ? "Finish" : "Next"} onPress={onNext} />
+          <TouchableOpacity style={styles.nextButton} onPress={onNext}>
+            <Text style={styles.nextButtonText}>
+              {currentIndex === questions.length - 1 ? "Finish" : "Next"}
+            </Text>
+          </TouchableOpacity>
         </View>
       )}
     </SafeAreaView>
@@ -126,13 +129,91 @@ export default function QuizTest({ route, navigation }: Props) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 16, paddingTop: 60, backgroundColor: '#fff' },
-  questionText: { fontSize: 24, fontWeight: 'bold', marginBottom: 24 },
+  container: { 
+    flex: 1, 
+    padding: 20, 
+    backgroundColor: '#f0f8ff' // nền xanh nhạt
+  },
+
+  progressContainer: {
+    height: 8,
+    backgroundColor: '#ddd',
+    borderRadius: 4,
+    marginBottom: 20,
+    overflow: 'hidden',
+  },
+  progressBar: {
+    height: '100%',
+    backgroundColor: '#4CAF50',
+  },
+
+  questionText: { 
+    fontSize: 22, 
+    fontWeight: '700', 
+    textAlign: 'center',
+    color: '#333', 
+    marginBottom: 24,
+    lineHeight: 30
+  },
+
   optionButton: {
     padding: 16,
-    borderRadius: 8,
+    borderRadius: 12,
     marginBottom: 12,
+    backgroundColor: '#fff',
+    borderWidth: 1,
+    borderColor: '#ddd',
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+    elevation: 2,
   },
-  optionText: { fontSize: 18 },
-  resultContainer: { marginTop: 20, alignItems: 'center' },
+
+  optionText: { 
+    fontSize: 18, 
+    color: '#333' 
+  },
+
+  resultContainer: { 
+    marginTop: 20, 
+    alignItems: 'center', 
+    backgroundColor: '#fff',
+    padding: 16,
+    borderRadius: 12,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+    elevation: 2,
+  },
+
+  resultText: {
+    fontSize: 20,
+    fontWeight: '600',
+    marginBottom: 8,
+    color: '#333'
+  },
+
+  explanation: {
+    marginTop: 8,
+    fontStyle: 'italic',
+    fontSize: 16,
+    color: '#555',
+    textAlign: 'center'
+  },
+
+  nextButton: {
+    marginTop: 16,
+    backgroundColor: '#4CAF50',
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 10,
+  },
+  nextButtonText: {
+    color: '#fff',
+    fontSize: 18,
+    fontWeight: '600',
+    textAlign: 'center'
+  }
 });

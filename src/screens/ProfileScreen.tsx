@@ -6,6 +6,7 @@ import User from '../models/user';
 import { getProfile, logout_fe } from '../services/api/user.services';
 import Progress from './progressScreen';
 import { ScrollView } from 'react-native-gesture-handler';
+import Constants from 'expo-constants';
 import { useAuth } from '../hooks/AuthContext';
 
 export default function ProfileScreen() {
@@ -33,52 +34,50 @@ export default function ProfileScreen() {
   }
 
   return (
-    <ScrollView>
+    <ScrollView style={{ flex: 1, backgroundColor: '#fff', marginTop: Constants.statusBarHeight }}>
       <View style={styles.container}>
-        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignContent: 'center', width: '100%', paddingTop: 20,}}>
-            <View style={{justifyContent: 'flex-end', alignItems: 'flex-start', width: '30%'}}>
-            </View>
-            <View style={{justifyContent: 'center', alignItems: 'center', width: '40%'}}>
-                <Image
-                    source={{ uri: 'https://lh3.googleusercontent.com/a/ACg8ocIQa9mS2iz0zbQ3QCk0hFGg8Y2icnbkN3Shd2Ly6ObTW1MAqFc3=s360-c-no' }}
-                    style={styles.avatar}
-                />
-            </View>
-            <TouchableOpacity style={{justifyContent: 'flex-start', alignItems: 'flex-end', width: '30%'}} onPress={logoutBtn}>
-                <FontAwesomeIcon icon={faBars} size={28} color="black" />
-            </TouchableOpacity>
+        {/* Header */}
+        <View style={styles.header}>
+          <TouchableOpacity onPress={logoutBtn}>
+            <FontAwesomeIcon icon={faBars} size={24} color="black" />
+          </TouchableOpacity>
         </View>
-      
-        <Text style={styles.username}>{user?.username}</Text>
-        <Text style={styles.bio}>Giới thiệu bản thân ở đây...</Text>
 
+        {/* Avatar + Info */}
+        <Image
+          source={{ uri: user?.avatar || "https://via.placeholder.com/100" }}
+          style={styles.avatar}
+        />
+        <Text style={styles.username}>{user?.username || "Loading..."}</Text>
+        <Text style={styles.bio}>{user?.bio || "Giới thiệu bản thân ở đây..."}</Text>
+
+        {/* Stats */}
         <View style={styles.statsContainer}>
-            <View style={styles.stat}>
-                <Text style={styles.statNumber}>120</Text>
-                <Text style={styles.statLabel}>Bài viết</Text>
+          {[
+            { number: 120, label: "Bài viết" },
+            { number: 340, label: "Người theo dõi" },
+            { number: 180, label: "Đang theo dõi" },
+          ].map((stat, i) => (
+            <View key={i} style={styles.stat}>
+              <Text style={styles.statNumber}>{stat.number}</Text>
+              <Text style={styles.statLabel}>{stat.label}</Text>
             </View>
-            <View style={styles.stat}>
-                <Text style={styles.statNumber}>340</Text>
-                <Text style={styles.statLabel}>Người theo dõi</Text>
-            </View>
-            <View style={styles.stat}>
-                <Text style={styles.statNumber}>180</Text>
-                <Text style={styles.statLabel}>Đang theo dõi</Text>
-            </View>
+          ))}
         </View>
 
-        <Button title="Chỉnh sửa hồ sơ" onPress={() => {}} />
-        <View style={{
-          padding: 30,
-          justifyContent:'flex-start',
-          width: '100%',
-          backgroundColor: '#fff',
-          flex: 1,
-        }}>
-          {user?._id && <Progress userId={user?._id}/>}
+        {/* Edit profile */}
+        <TouchableOpacity style={styles.editBtn}>
+          <Text style={{ color: "#fff", fontWeight: "600" }}>Chỉnh sửa hồ sơ</Text>
+        </TouchableOpacity>
+
+        {/* Progress */}
+        <View style={styles.progressBox}>
+          {user?._id && <Progress userId={user._id} />}
         </View>
-        <TouchableOpacity style={{ backgroundColor: "#2196F3", margin: 40, justifyContent: 'center', alignItems: 'center', padding: 10, borderRadius: 8 }} onPress={logoutBtn}>
-          <Text>Log out</Text>
+
+        {/* Logout */}
+        <TouchableOpacity style={styles.logoutBtn} onPress={logoutBtn}>
+          <Text style={{ color: "#fff", fontWeight: "bold" }}>Đăng xuất</Text>
         </TouchableOpacity>
       </View>
     </ScrollView>
@@ -86,10 +85,39 @@ export default function ProfileScreen() {
 }
 
 const styles = StyleSheet.create({
+  header: {
+    width: "100%",
+    flexDirection: "row",
+    justifyContent: "flex-end",
+    padding: 16,
+  },
+  editBtn: {
+    backgroundColor: "#007AFF",
+    paddingVertical: 10,
+    paddingHorizontal: 24,
+    borderRadius: 8,
+    marginBottom: 20,
+  },
+  progressBox: {
+    width: "100%",
+    padding: 20,
+    backgroundColor: "#f9f9f9",
+    borderRadius: 12,
+    marginTop: 16,
+  },
+  logoutBtn: {
+    backgroundColor: "#FF3B30",
+    padding: 12,
+    borderRadius: 8,
+    marginTop: 30,
+    width: "60%",
+    alignSelf: "center",
+    alignItems: "center",
+  },
   container: {
     width: '100%',
-    height: 600,
-    paddingTop: 30,
+    height: '100%',
+    paddingTop: 10,
     alignItems: 'center',
     backgroundColor: '#fff',
     flex: 1,

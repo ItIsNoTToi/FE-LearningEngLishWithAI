@@ -5,23 +5,18 @@ import { useNavigation } from "@react-navigation/native";
 import Lesson from "../models/lesson";
 import { useDispatch } from "react-redux";
 import { setSelectedLesson } from "../features/lesson/lesson.store";
-import { ScrollView } from "react-native-gesture-handler";
+import Constants from "expo-constants";
 
 export default function ListLesson() {
   const navigation = useNavigation();
   const [lessons, setLessons] = useState<Lesson[]>([]);
   const dispatch = useDispatch();
-  
+
   useEffect(() => {
     getLesson()
-      .then((data) => 
-        {
-          // console.log(data.data);
-          setLessons(data.data)
-        })
+      .then((data) => setLessons(data.data))
       .catch((error) => console.error(error));
-  }, [lessons]);
-
+  }, []); // ✅ chỉ gọi 1 lần
 
   const goToLearningWithAI = (lesson: Lesson) => {
     dispatch(setSelectedLesson(lesson));
@@ -29,58 +24,62 @@ export default function ListLesson() {
   };
 
   const renderLesson = ({ item }: { item: Lesson }) => (
-    <TouchableOpacity style={styles.card} onPress={() => goToLearningWithAI(item)}>
-      <Text style={styles.title}>{item.title}</Text>
-      <Text style={styles.description}>{item.description}</Text>
+    <TouchableOpacity
+      style={styles.card}
+      activeOpacity={0.7}
+      onPress={() => goToLearningWithAI(item)}
+    >
+      <View style={styles.cardHeader}>
+        <Text style={styles.icon}>📘</Text>
+        <Text style={styles.title}>{item.title}</Text>
+      </View>
+      <Text style={styles.description} numberOfLines={2}>
+        {item.description}
+      </Text>
     </TouchableOpacity>
   );
 
   return (
     <View style={styles.container}>
-      <Text style={styles.header}>Lessions</Text>
+      <Text style={styles.header}>📖 Lessons</Text>
       <FlatList
         data={lessons}
         keyExtractor={(item) => item._id}
         renderItem={renderLesson}
         contentContainerStyle={styles.list}
       />
-    </View>    
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#fff",
-    paddingHorizontal: 39,
-    paddingTop: 50,
-    paddingBottom: 10,
+    backgroundColor: "#f8fafc",
+    paddingHorizontal: 20,
+    paddingTop: Constants.statusBarHeight + 20,
   },
   header: {
-    fontSize: 24,
-    fontWeight: "bold",
-    marginBottom: 16,
+    fontSize: 26,
+    fontWeight: "800",
+    marginBottom: 20,
+    textAlign: "center",
+    color: "#1e293b",
   },
-  list: {
-    paddingBottom: 20,
-  },
+  list: { paddingBottom: 20 },
   card: {
-    backgroundColor: "#f9f9f9",
+    backgroundColor: "#fff",
     padding: 16,
-    marginBottom: 12,
-    borderRadius: 8,
+    marginBottom: 14,
+    borderRadius: 12,
     shadowColor: "#000",
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
+    shadowOpacity: 0.06,
+    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 3 },
     elevation: 2,
   },
-  title: {
-    fontSize: 18,
-    fontWeight: "600",
-  },
-  description: {
-    fontSize: 14,
-    color: "#666",
-    marginTop: 4,
-  },
+  cardHeader: { flexDirection: "row", alignItems: "center", marginBottom: 8 },
+  icon: { fontSize: 20, marginRight: 8 },
+  title: { fontSize: 18, fontWeight: "600", color: "#334155", flexShrink: 1 },
+  description: { fontSize: 15, color: "#64748b", lineHeight: 20 },
 });

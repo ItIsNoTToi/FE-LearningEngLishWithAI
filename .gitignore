@@ -43,6 +43,8 @@ yarn-error.*
 .env.local
 .env.*.local
 
+env.ts
+
 # TypeScript build cache
 *.tsbuildinfo
 

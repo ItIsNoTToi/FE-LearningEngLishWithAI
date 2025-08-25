@@ -1,19 +1,32 @@
 import axiosInstance from "../../config/axiosconfig";
+import { URL_API } from "@env";
+import EventSource from "react-native-sse";
 
-export const fetchAI = async (data: any): Promise<any> => {
-    try {
-        const response = await axiosInstance.post('/api/ai/lesson-chat',{
-            sessionId: data.sessionId, 
-            userId: data.userId, 
-            lessonId: data.lessonId, 
-            userSpeechText: data.userSpeechText ,
-        });
+export const fetchAIStream = (data: any, onDelta: (delta: string) => void, onDone: () => void) => {
+  const es = new EventSource(`${URL_API}/api/ai/lesson-chat-stream`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
 
-        return response.data;
-    } catch (error: any) {
-        throw Error (error.message);
+  es.addEventListener("message", (event) => {
+    if (event.data === "[DONE]") {
+      onDone();
+      es.close();
+    } else {
+      if (event.data !== null) {
+        // console.log("Received SSE data:", event.data);
+        onDelta(event.data);
+      }
     }
-}
+  });
+
+  es.addEventListener("error", (event) => {
+    console.error("SSE error:", event);
+    es.close();
+  });
+};
+
 
 export const startLessonAI = async (userId: any, lessonId: any) => {
     try {

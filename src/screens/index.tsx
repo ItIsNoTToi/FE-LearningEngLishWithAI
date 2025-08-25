@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, Image, TouchableOpacity, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import Constants from 'expo-constants';
 
 export default function HomeSreen({ navigation }: any) {
   return (
@@ -44,6 +45,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#f0f6ff',
     flex: 1,
     paddingHorizontal: 20,
+    marginTop: Constants.statusBarHeight,
   },
   header: {
     marginTop: 40,

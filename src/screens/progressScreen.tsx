@@ -1,14 +1,22 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, Dimensions, Button, ScrollView } from 'react-native';
-import { BarChart } from 'react-native-chart-kit';
-import { fetchProgressApi } from '../services/api/progress.services';
-import { progress } from '../models/progress';
+import React, { useEffect, useState } from "react";
+import {
+  View,
+  Text,
+  Dimensions,
+  ScrollView,
+  TouchableOpacity,
+  ActivityIndicator,
+  StyleSheet,
+} from "react-native";
+import { BarChart } from "react-native-chart-kit";
+import { fetchProgressApi } from "../services/api/progress.services";
+import { progress } from "../models/progress";
 
 interface ProgressProps {
   userId: string;
 }
 
-const screenWidth = Dimensions.get('window').width;
+const screenWidth = Dimensions.get("window").width;
 
 const Progress = ({ userId }: ProgressProps) => {
   const [progressData, setProgressData] = useState<progress[] | null>(null);
@@ -18,76 +26,74 @@ const Progress = ({ userId }: ProgressProps) => {
   useEffect(() => {
     setLoading(true);
     fetchProgressApi(userId)
-      .then(data => {
-        setProgressData(data.data);
-      })
-      .catch(() => {
-        setProgressData(null);
-      })
-      .finally(() => {
-        setLoading(false);
-      });
+      .then((data) => setProgressData(data.data))
+      .catch(() => setProgressData(null))
+      .finally(() => setLoading(false));
   }, [userId]);
 
-  if (loading) return <Text>Loading progress...</Text>;
+  if (loading)
+    return (
+      <View style={styles.center}>
+        <ActivityIndicator size="large" color="#007AFF" />
+        <Text>Đang tải tiến độ...</Text>
+      </View>
+    );
 
   if (!progressData || progressData.length === 0) {
-    return <Text>No progress data available</Text>;
+    return <Text>Chưa có dữ liệu tiến độ</Text>;
   }
 
-  const labels = progressData.map(item => item.lesson.toString().slice(-4)); // demo label
-  const scores = progressData.map(item => item.score);
-
-  const ShowDetail = (visible: boolean) => {
-    setDetailVisible(visible);
-  }
+  const labels = progressData.map((item, i) => `L${i + 1}`);
+  const scores = progressData.map((item) => item.score);
 
   return (
     <ScrollView>
-      <Text style={{ textAlign: 'center', fontWeight: 'bold', marginBottom: 10 }}>Scores Progress</Text>
+      <Text style={styles.title}>Tiến độ học tập</Text>
       <BarChart
         data={{
-          labels: labels,
-          datasets: [
-            {
-              data: scores,
-            },
-          ],
+          labels,
+          datasets: [{ data: scores }],
         }}
         width={screenWidth - 40}
         height={220}
+        fromZero
         yAxisLabel=""
         yAxisSuffix=""
         chartConfig={{
-          backgroundColor: '#ffffff',
-          backgroundGradientFrom: '#f5f5f5',
-          backgroundGradientTo: '#e8e8e8',
+          backgroundColor: "#fff",
+          backgroundGradientFrom: "#f5f5f5",
+          backgroundGradientTo: "#e8e8e8",
           decimalPlaces: 0,
           color: (opacity = 1) => `rgba(0, 122, 255, ${opacity})`,
-          labelColor: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
-          style: {
-            borderRadius: 16,
-          },
-          propsForDots: {
-            r: '6',
-            strokeWidth: '2',
-            stroke: '#ffa726',
-          },
+          labelColor: (opacity = 1) => `rgba(0,0,0,${opacity})`,
+          style: { borderRadius: 16 },
         }}
-        style={{
-          marginVertical: 8,
-          borderRadius: 16,
-          alignSelf: 'center',
-        }}
+        style={styles.chart}
       />
-      <Button title={detailVisible ? "Hide Detail" : "Show Detail"} onPress={() => ShowDetail(!detailVisible)} />
+
+      <TouchableOpacity
+        style={styles.toggleBtn}
+        onPress={() => setDetailVisible(!detailVisible)}
+      >
+        <Text style={styles.toggleBtnText}>
+          {detailVisible ? "Ẩn chi tiết" : "Xem chi tiết"}
+        </Text>
+      </TouchableOpacity>
+
       {detailVisible && (
-        <View style={{ maxHeight: 200, marginTop: 10 }}>
+        <View style={{ marginTop: 10 }}>
           {progressData.map((item) => (
-            <View key={item._id} style={{ marginBottom: 10 }}>
-              <Text>Status: {item.status}</Text>
-              <Text>Score: {item.score}</Text>
-              <Text>Updated at: {new Date(item.updatedAt).toLocaleString()}</Text>
+            <View key={item._id} style={styles.detailCard}>
+              <Text style={styles.detailText}>
+                <Text style={styles.bold}>Status:</Text> {item.status}
+              </Text>
+              <Text style={styles.detailText}>
+                <Text style={styles.bold}>Score:</Text> {item.score}
+              </Text>
+              <Text style={styles.detailText}>
+                <Text style={styles.bold}>Cập nhật:</Text>{" "}
+                {new Date(item.updatedAt).toLocaleString()}
+              </Text>
             </View>
           ))}
         </View>
@@ -97,3 +103,53 @@ const Progress = ({ userId }: ProgressProps) => {
 };
 
 export default Progress;
+
+const styles = StyleSheet.create({
+  title: {
+    textAlign: "center",
+    fontWeight: "bold",
+    marginBottom: 10,
+    fontSize: 18,
+  },
+  chart: {
+    marginVertical: 8,
+    borderRadius: 16,
+    alignSelf: "center",
+  },
+  toggleBtn: {
+    backgroundColor: "#007AFF",
+    padding: 10,
+    borderRadius: 8,
+    marginTop: 10,
+    alignSelf: "center",
+    minWidth: 120,
+    alignItems: "center",
+  },
+  toggleBtnText: {
+    color: "#fff",
+    fontWeight: "600",
+  },
+  detailCard: {
+    backgroundColor: "#f9f9f9",
+    padding: 12,
+    borderRadius: 8,
+    marginBottom: 8,
+    shadowColor: "#000",
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  detailText: {
+    fontSize: 14,
+    marginBottom: 2,
+  },
+  bold: {
+    fontWeight: "600",
+  },
+  center: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 20,
+  },
+});

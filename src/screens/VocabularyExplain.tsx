@@ -1,5 +1,5 @@
 import React from 'react';
-import { Text, StyleSheet, ScrollView, SafeAreaView } from 'react-native';
+import { Text, StyleSheet, ScrollView, SafeAreaView, View } from 'react-native';
 import { VocabularyExplainProps } from '../models/vocabulary';
 
 export default function VocabularyExplain({
@@ -10,41 +10,70 @@ export default function VocabularyExplain({
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView contentContainerStyle={styles.content}>
-        <Text style={styles.word}>{word}</Text>
-        <Text style={styles.definition}>{definition}</Text>
+        <View style={styles.card}>
+          <Text style={styles.word}>{word}</Text>
+          <Text style={styles.definition}>{definition}</Text>
 
-        {example ? (
-          <>
-            <Text style={styles.sectionTitle}>Example:</Text>
-            <Text style={styles.example}>{example}</Text>
-          </>
-        ) : null}
-
+          {example ? (
+            <View style={styles.exampleBox}>
+              <Text style={styles.sectionTitle}>Example</Text>
+              <Text style={styles.example}>{example}</Text>
+            </View>
+          ) : null}
+        </View>
       </ScrollView>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, paddingHorizontal: 16, paddingTop: 40,  justifyContent: 'center', alignContent: 'center', backgroundColor: '#c7f130ff', width: '100%', height: 50, },
-  content: { paddingBottom: 40 },
-  word: { fontSize: 32, fontWeight: 'bold', marginBottom: 12, color: '#222' },
-  definition: { fontSize: 18, lineHeight: 28, marginBottom: 20, color: '#444' },
+  container: { 
+    flex: 1, 
+    backgroundColor: '#f8fafc', 
+  },
+  content: { 
+    flexGrow: 1, 
+    justifyContent: 'center', 
+    padding: 20 
+  },
+  card: {
+    backgroundColor: '#fff',
+    borderRadius: 16,
+    padding: 24,
+    shadowColor: "#000",
+    shadowOpacity: 0.08,
+    shadowOffset: { width: 0, height: 4 },
+    shadowRadius: 6,
+    elevation: 3,
+  },
+  word: { 
+    fontSize: 34, 
+    fontWeight: '800', 
+    marginBottom: 16, 
+    textAlign: 'center', 
+    color: '#1e293b' 
+  },
+  definition: { 
+    fontSize: 18, 
+    lineHeight: 26, 
+    marginBottom: 20, 
+    color: '#334155',
+    textAlign: 'center',
+  },
   sectionTitle: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: '600',
-    marginTop: 16,
-    marginBottom: 8,
-    color: '#333',
+    marginBottom: 6,
+    color: '#475569',
+  },
+  exampleBox: {
+    backgroundColor: '#f1f5f9',
+    borderRadius: 10,
+    padding: 12,
   },
   example: {
     fontSize: 16,
     fontStyle: 'italic',
-    color: '#555',
-    lineHeight: 24,
-  },
-  extraInfo: {
-    fontSize: 16,
     color: '#555',
     lineHeight: 24,
   },

@@ -76,6 +76,10 @@ export default function Login({ navigation }: any) {
           <Text style={styles.loginText}>Login with Email</Text>
         </TouchableOpacity>
 
+        <TouchableOpacity onPress={() => {}}>
+          <Text style={styles.forgotText}>Forgot Password?</Text>
+        </TouchableOpacity>
+
         <Text style={styles.orText}>or</Text>
 
         <TouchableOpacity onPress={() => navigation.navigate('LoginWithPhone')}>
@@ -134,6 +138,12 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     marginBottom: 16,
     width: '100%',
+  },
+  forgotText: {
+    color: '#4f6ef7',
+    fontSize: 14,
+    marginBottom: 16,
+    textDecorationLine: 'underline',
   },
   loginText: {
     color: '#fff',

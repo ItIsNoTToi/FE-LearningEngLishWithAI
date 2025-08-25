@@ -7,5 +7,7 @@ export default interface user{
     isActive:   boolean,
     lastLogin:  Date,
     createdAt:  Date,
-    updatedAt:  Date
+    updatedAt:  Date,
+    avatar:     string,
+    bio:        string
 }

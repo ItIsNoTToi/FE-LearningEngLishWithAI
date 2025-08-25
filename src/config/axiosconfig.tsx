@@ -1,9 +1,8 @@
 import axios from "axios";
+import { URL_API } from "@env";
 
 const axiosInstance = axios.create({
-  baseURL: "http://192.168.100.4:3000", 
-  // baseURL: "http://10.3.17.130:3000",
-  // baseURL: "https://be-fq6z.onrender.com",
+  baseURL: URL_API, 
   timeout: 10000, // Set a timeout of 10 seconds
 });
 
