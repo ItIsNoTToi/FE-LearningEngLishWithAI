@@ -3,6 +3,7 @@ import { StyleSheet, Text, View, TouchableOpacity, TextInput, Image, KeyboardAvo
 import { fetchRegister } from '../services/api/auth.services';
 import { useAuth } from '../hooks/AuthContext';
 import { ScrollView } from 'react-native-gesture-handler';
+import { saveToken } from './login';
 
 export default function Register({ navigation }: any) {
   const [username, setUserName] = useState('');
@@ -11,37 +12,49 @@ export default function Register({ navigation }: any) {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
 
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&#])[A-Za-z\d@$!%*?&#]{8,}$/;
   const { login } = useAuth();
 
   const handleRegister = async () => {
     if(username && email && phoneNumber && password && confirmPassword) {
+      if (!emailRegex.test(email)) {
+        alert("Invalid email format");
+        return;
+      }
+
+      if (!passwordRegex.test(password)) {
+        alert("Password must be at least 8 characters long, include uppercase, lowercase, number, and special character");
+        return;
+      }
+      
       if(confirmPassword != password) {
         alert('Your password must match with your confirm password');
         return;
-      } else {
-        const userData = {
-          username: username.trim(),
-          email: email.trim(),
-          phone: phoneNumber.trim(),
-          password: password.trim(),
-        }
-
-        // console.log(userData);
-
-        await fetchRegister(userData)
-        .then((data) => {
-          // console.log(data);
-          data.success ? login() : alert('Login failed. Please check your credentials.');
-        })
-        .catch((error: any) => {
-          if (error.status === 400) {
-            alert(error.message || 'Username, email, or phone number already exists');
-          } else {
-            alert('Something went wrong: ' + error.message);
-          }
-        });
-
       }
+
+      const userData = {
+        username: username.trim(),
+        email: email.trim(),
+        phone: phoneNumber.trim(),
+        password: password.trim(),
+      }
+
+      // console.log(userData);
+
+      await fetchRegister(userData)
+      .then((data) => {
+        saveToken(data.token);
+        // console.log(data);
+        data.success ? login() : alert('Login failed. Please check your credentials.');
+      })
+      .catch((error: any) => {
+        if (error.status === 400) {
+          alert(error.message || 'Username, email, or phone number already exists');
+        } else {
+          alert('Something went wrong: ' + error.message);
+        }
+      });
     } else {
       alert('You must fill all the fields');
     }

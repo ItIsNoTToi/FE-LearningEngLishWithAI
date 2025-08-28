@@ -18,12 +18,14 @@ import ReadingDetailScreen from '../screens/ReadingDetailScreen';
 import Lesson from '../models/lesson';
 import Progress from '../screens/progressScreen';
 import ResultScreen from '../screens/ResultScreen';
+import TournamentDetailScreen from '../screens/TournamentDetail';
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
 const QuizStack = createStackNavigator<QuizStackParamList>();
 const ReadStack = createStackNavigator<ReadStackParamList>();
-const ProfileStack = createStackNavigator<ProfileStackParamList>();
+// const ProfileStack = createStackNavigator<ProfileStackParamList>();
+const TournamentStack = createStackNavigator<TournamentStackParamList>();
 
 export type QuizStackParamList = {
   QuizTopic: undefined;
@@ -40,6 +42,11 @@ export type ProfileStackParamList = {
   Profile: undefined;
   Progress: { userId: string };
 };
+
+export type TournamentStackParamList = {
+  Competition: undefined;
+  TournamentDetail: { tournamentId: string };
+}
 
 
 function MainTabs() {
@@ -77,7 +84,7 @@ function MainTabs() {
       />
       <Tab.Screen
         name="Competition"
-        component={CompetitionScreen}
+        component={TournamentTabs}
         options={{
           title: 'Competition',
           tabBarIcon: ({ color, size }) => (
@@ -118,6 +125,15 @@ function QuizTabs() {
         options={{ title: 'Result' }}
       />
     </QuizStack.Navigator>
+  );
+}
+
+function TournamentTabs() {
+  return (
+    <TournamentStack.Navigator screenOptions={{ headerShown: false }}>
+      <TournamentStack.Screen name='Competition' component={CompetitionScreen} options={{ title: 'Tournament' }} />
+      <TournamentStack.Screen name='TournamentDetail' component={TournamentDetailScreen} options={{ title: 'Tournament Detail' }} />
+    </TournamentStack.Navigator>
   );
 }
 
