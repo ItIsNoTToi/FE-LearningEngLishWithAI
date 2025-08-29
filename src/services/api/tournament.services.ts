@@ -44,3 +44,4 @@ export const joinTournament = async (tournamentId: string) => {
   return res.data;
 };
 
+  

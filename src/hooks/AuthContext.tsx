@@ -1,9 +1,10 @@
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useEffect, useState } from 'react';
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 type AuthContextType = {
   isLoggedIn: boolean;
-  login: () => void;
-  logout: () => void;
+  login: () => Promise<void>;
+  logout: () => Promise<void>;
 };
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -11,8 +12,22 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
-  const login = () => setIsLoggedIn(true);
-  const logout = () => setIsLoggedIn(false);
+  // Load trạng thái login từ AsyncStorage
+  useEffect(() => {
+    AsyncStorage.getItem("authToken").then((token) => {
+      if (token) setIsLoggedIn(true);
+    });
+  }, []);
+
+  const login = async () => {
+    // await AsyncStorage.setItem("authToken", "fake-token"); // sau này thay bằng token BE trả về
+    setIsLoggedIn(true);
+  };
+
+  const logout = async () => {
+    await AsyncStorage.removeItem("authToken");
+    setIsLoggedIn(false);
+  };
 
   return (
     <AuthContext.Provider value={{ isLoggedIn, login, logout }}>

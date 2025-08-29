@@ -10,23 +10,17 @@ export const fetchAIStream = (data: any, onDelta: (delta: string) => void, onDon
   });
 
   es.addEventListener("message", (event) => {
-    if (event.data === "[DONE]") {
-      onDone();
-      es.close();
-    } else {
-      if (event.data !== null) {
-        // console.log("Received SSE data:", event.data);
-        onDelta(event.data);
-      }
-    }
+    if (event.data === "[DONE]") { onDone(); es.close(); }
+    else if (event.data != null) { onDelta(event.data); }
   });
 
   es.addEventListener("error", (event) => {
     console.error("SSE error:", event);
     es.close();
   });
-};
 
+  return es; // <— để component có thể giữ reference
+};
 
 export const startLessonAI = async (userId: any, lessonId: any) => {
     try {

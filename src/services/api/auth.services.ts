@@ -1,37 +1,43 @@
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "../../config/axiosconfig";
 
 export const fetchLogin = async (data: any): Promise<any> => {
-    try {
-        // console.log("Fetching login with data:", data);
+  try {
+    const response = await axios.post("/api/login", {
+      email: data.email,
+      password: data.password,
+    });
 
-        const response = await axios.post('/api/login',
-        {
-            email: data.email,
-            password: data.password
-        });      
+    // ✅ Lưu token sau khi login thành công
+    // if (response.data?.token) {
+    //     console.log("Storing token:", response.data.token);
+    //   await AsyncStorage.setItem("authToken", response.data.token);
+    // }
 
-        return response.data;  
-    } catch (error) {
-        console.error("Error fetching login:", error);
-        throw error; // Re-throw the error for further handling
-    }
-}
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching login:", error);
+    throw error;
+  }
+};
 
 export const fetchLoginWithPhone = async (data: any): Promise<any> => {
-    try {
-        // console.log("Fetching login with data:", data);
+  try {
+    const response = await axios.post("/api/loginwithphone", {
+      phone: data.phoneNumber,
+    });
 
-        const response = await axios.post('/api/loginwithphone',
-        {
-            phone: data.phoneNumber
-        });      
+    // ✅ Lưu token
+    // if (response.data?.token) {
+    //   await AsyncStorage.setItem("authToken", response.data.token);
+    // }
 
-        return response.data;  
-    } catch (error) {
-        console.error("Error fetching login:", error);
-        throw error; // Re-throw the error for further handling
-    }
-}
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching login:", error);
+    throw error;
+  }
+};
 
 export const fetchRegister = async (userData: any): Promise<any> => {
     try {
