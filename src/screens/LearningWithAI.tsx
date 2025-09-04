@@ -14,6 +14,7 @@ import { fetchAIStream, startLessonAI, EndLessonAI } from "../services/api/AI.se
 import { getProfile } from "../services/api/user.services";
 import { makeAIKey, getCachedAI, setCachedAI } from "../services/aiCache";
 import User from "../models/user";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 async function speak(text: string) {
   Speech.speak(text, { language: "en", pitch: 1.0, rate: 1.0 });
@@ -88,17 +89,37 @@ export default function LearningWithAI() {
     if (!userInput.trim() || !selectedLesson?._id || !user?._id) return;
 
     const prompt = userInput;
-    const cacheKey = makeAIKey(selectedLesson._id, prompt);
+    const cacheKey = makeAIKey(selectedLesson?._id, prompt);
 
     // 1) append message user
     appendMessage({ from: "user", text: prompt });
 
     // 2) Nếu đã có câu trả lời trong cache → dùng luôn, không gọi API
-    const cached = getCachedAI(cacheKey);
-    if (cached) {
-      appendMessage({ from: "ai", text: cached });
-      setUserInput("");
-      return;
+    // const cached = getCachedAI(cacheKey);
+    // if (cached) {
+    //   // console.log("Using cached AI response", JSON.stringify(cached));
+    //   appendMessage({ from: "ai", text: cached } as any);
+    //   setUserInput("");
+    //   return;
+    // }
+    try {
+      const cached = await AsyncStorage.getItem(cacheKey);
+      if (cached) {
+        // Parse the cached value if it's JSON, otherwise use as string
+        let cachedText: string;
+        try {
+          const parsed = JSON.parse(cached);
+          cachedText = typeof parsed === 'string' ? parsed : parsed.text || parsed.value || cached;
+        } catch {
+          cachedText = cached;
+        }
+        
+        appendMessage({ from: "ai", text: String(cachedText) });
+        setUserInput("");
+        return;
+      }
+    } catch (error) {
+      console.error("Error reading cache:", error);
     }
 
     // 3) Nếu chưa có, bắt đầu 1 message rỗng cho AI và stream
@@ -124,8 +145,9 @@ export default function LearningWithAI() {
           // hoàn tất: lưu cache để lần sau không gọi lại
           setCachedAI(cacheKey, fullText);
           // tuỳ chọn: đọc to
-          // speak(fullText);
+          speak(fullText);
         }
+        
       ) as unknown as EventSource;
     } catch (err) {
       console.error("fetchAIStream error:", err);
@@ -135,6 +157,8 @@ export default function LearningWithAI() {
       // es?.close?.();
     }
   };
+
+  // console.log("Rendering LearningWithAI, messages:", messages);
 
   return (
     <KeyboardAvoidingView
@@ -148,7 +172,8 @@ export default function LearningWithAI() {
         <FlatList
           ref={flatRef}
           data={messages}
-          keyExtractor={(_, idx) => String(idx)}
+          extraData={messages}
+          keyExtractor={(_, idx) => String(idx)} 
           contentContainerStyle={{ padding: 16 }}
           renderItem={({ item }) => (
             <View
@@ -157,12 +182,20 @@ export default function LearningWithAI() {
                 item.from === "user" ? styles.userBubble : styles.aiBubble,
               ]}
             >
-              <Text style={styles.messageText}>{item.text}</Text>
+              <Text style={styles.messageText}>
+                {typeof item.text === "string" ? item.text : JSON.stringify(item.text)}
+              </Text>
             </View>
           )}
-          onContentSizeChange={() => flatRef.current?.scrollToEnd({ animated: true })}
+          getItemLayout={(_, index) => ({
+            length: 60,      // chiều cao mỗi item (bạn chỉnh theo UI)
+            offset: 60 * index,
+            index,
+          })}
+          onContentSizeChange={() => {
+            flatRef.current?.scrollToEnd({ animated: true });
+          }}
         />
-
         <View style={styles.inputContainer}>
           <TextInput
             value={userInput}

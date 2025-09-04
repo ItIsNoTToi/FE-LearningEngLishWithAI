@@ -4,14 +4,17 @@ import EventSource from "react-native-sse";
 
 export const fetchAIStream = (data: any, onDelta: (delta: string) => void, onDone: () => void) => {
   const es = new EventSource(`${URL_API}/api/ai/lesson-chat-stream`, {
-    method: "POST",
+    method: "GET",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data),
   });
 
   es.addEventListener("message", (event) => {
     if (event.data === "[DONE]") { onDone(); es.close(); }
-    else if (event.data != null) { onDelta(event.data); }
+    else if (event.data != null) {
+      const delta = JSON.parse(event.data); // giữ nguyên space, newline
+      onDelta(delta);
+    }
   });
 
   es.addEventListener("error", (event) => {
