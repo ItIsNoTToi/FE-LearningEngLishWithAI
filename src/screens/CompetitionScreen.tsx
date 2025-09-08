@@ -8,7 +8,7 @@ import { formatDate } from '../utils/date';
 import { TournamentStackParamList } from '../navigation/AppStack';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 
-type Props = NativeStackScreenProps<TournamentStackParamList, 'TournamentDetail'>;
+type Props = NativeStackScreenProps<TournamentStackParamList, 'Tournament'>;
 
 export default function CompetitionScreen({navigation}: Props) {
   const [tournaments, setTournaments] = useState<Tournament[]>([]);

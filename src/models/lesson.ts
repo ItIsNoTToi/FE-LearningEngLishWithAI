@@ -8,8 +8,9 @@ export default interface Lesson {
     example: string;
   }];
   level: 'beginner' | 'intermediate' | 'advanced';
+  order: number;
   content?: string; // văn bản, HTML, JSON...
   createdAt?: Date;
   updatedAt?: Date;
-  status?: string; // hoặc có thể dùng enum nếu status có giới hạn giá trị
+  status?: 'close' | 'open';
 }

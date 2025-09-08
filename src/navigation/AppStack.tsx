@@ -9,6 +9,7 @@ import ListLesson from '../screens/ListLesson';
 import RankingScreen from '../screens/RankingScreen';
 import CompetitionScreen from '../screens/CompetitionScreen';
 import LearningWithAI from '../screens/LearningWithAI';
+import AskingAI from '../screens/AskingAI';
 import VocabularyPage from '../screens/Vocabulary';
 import QuizTest from '../screens/QuizTest';
 import Listening from '../screens/Listening';
@@ -16,16 +17,8 @@ import ListQuizTopic from '../screens/ListQuizTopic';
 import ReadingTopicsScreen from '../screens/ReadingTopicsScreen';
 import ReadingDetailScreen from '../screens/ReadingDetailScreen';
 import Lesson from '../models/lesson';
-import Progress from '../screens/progressScreen';
 import ResultScreen from '../screens/ResultScreen';
 import TournamentDetailScreen from '../screens/TournamentDetail';
-
-const Tab = createBottomTabNavigator();
-const Stack = createStackNavigator();
-const QuizStack = createStackNavigator<QuizStackParamList>();
-const ReadStack = createStackNavigator<ReadStackParamList>();
-// const ProfileStack = createStackNavigator<ProfileStackParamList>();
-const TournamentStack = createStackNavigator<TournamentStackParamList>();
 
 export type QuizStackParamList = {
   QuizTopic: undefined;
@@ -44,10 +37,16 @@ export type ProfileStackParamList = {
 };
 
 export type TournamentStackParamList = {
-  Competition: undefined;
+  Tournament: undefined;
   TournamentDetail: { tournamentId: string };
 }
 
+const Tab = createBottomTabNavigator();
+const Stack = createStackNavigator();
+const QuizStack = createStackNavigator<QuizStackParamList>();
+const ReadStack = createStackNavigator<ReadStackParamList>();
+// const ProfileStack = createStackNavigator<ProfileStackParamList>();
+const TournamentStack = createStackNavigator<TournamentStackParamList>();
 
 function MainTabs() {
   return (
@@ -131,8 +130,16 @@ function QuizTabs() {
 function TournamentTabs() {
   return (
     <TournamentStack.Navigator screenOptions={{ headerShown: false }}>
-      <TournamentStack.Screen name='Competition' component={CompetitionScreen} options={{ title: 'Tournament' }} />
-      <TournamentStack.Screen name='TournamentDetail' component={TournamentDetailScreen} options={{ title: 'Tournament Detail' }} />
+      <TournamentStack.Screen 
+        name="Tournament" 
+        component={CompetitionScreen} 
+        options={{ title: 'Tournament' }} 
+      />
+      <TournamentStack.Screen 
+        name="TournamentDetail" 
+        component={TournamentDetailScreen} 
+        options={{ title: 'Tournament Detail' }} 
+      />
     </TournamentStack.Navigator>
   );
 }
@@ -174,6 +181,11 @@ export default function AppNavigation() {
         name="LearningWithAI"
         component={LearningWithAI}
         options={{ title: 'Learning With AI', headerShown: false }}
+      />
+      <Stack.Screen
+        name="AskingAI"
+        component={AskingAI}
+        options={{ title: 'Asking AI', headerShown: false }}
       />
       <Stack.Screen
         name="QuizTest"

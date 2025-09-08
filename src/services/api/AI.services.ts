@@ -2,18 +2,41 @@ import axiosInstance from "../../config/axiosconfig";
 import { URL_API } from "@env";
 import EventSource from "react-native-sse";
 
-export const fetchAIStream = (data: any, onDelta: (delta: string) => void, onDone: () => void) => {
+export const fetchAIStream = (
+  data: any,
+  onDelta: (delta: any) => void,
+  onDone: () => void,
+  onEnd?: () => void   // thêm callback end
+) => {
   const es = new EventSource(`${URL_API}/api/ai/lesson-chat-stream`, {
-    method: "GET",
+    method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data),
   });
 
   es.addEventListener("message", (event) => {
-    if (event.data === "[DONE]") { onDone(); es.close(); }
-    else if (event.data != null) {
-      const delta = JSON.parse(event.data); // giữ nguyên space, newline
-      onDelta(delta);
+    if (!event.data) return;
+
+    // Check nếu AI gửi DONE hay END
+    if (event.data.includes("[DONE]")) {
+      es.close();
+      onDone();
+      return;
+    }
+
+    if (event.data.includes("[END]")) {
+      es.close();
+      onEnd && onEnd();
+      return;
+    }
+
+    // Xử lý text bình thường
+    try {
+      const parsed = JSON.parse(event.data);
+      onDelta(parsed);
+    } catch (err) {
+      console.warn("Parse error:", err, event.data);
+      onDelta({ text: event.data ?? "", end: false });
     }
   });
 
@@ -22,14 +45,15 @@ export const fetchAIStream = (data: any, onDelta: (delta: string) => void, onDon
     es.close();
   });
 
-  return es; // <— để component có thể giữ reference
+  return es;
 };
 
-export const startLessonAI = async (userId: any, lessonId: any) => {
+export const startLessonAI = async (userId: any, lessonId: any, mode: any) => {
     try {
         const response = await axiosInstance.post('/api/ai/start',{
             userId: userId, 
-            lessonId: lessonId 
+            lessonId: lessonId,
+            mode: mode
         })   
         return response.data;
     } catch (error: any) {

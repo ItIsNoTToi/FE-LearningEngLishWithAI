@@ -25,6 +25,27 @@ export const fetchTournamentById = async (tournamentId: string) => {
     }
 }
 
+export const leaveTournament = async (tournamentId: string) => {
+  const token = await AsyncStorage.getItem("authToken");
+  if (!token) {
+    throw new Error("No token found");
+  }
+
+  const res = await axiosInstance.post(
+    `/api/tournament/${tournamentId}/join`,
+    {
+      status: "leave",
+    }, // body rỗng
+    {
+      headers: {
+        Authorization: `Bearer ${token}`, // Gửi token lên BE
+      },
+    }
+  );
+
+  return res.data;
+}
+
 export const joinTournament = async (tournamentId: string) => {
   const token = await AsyncStorage.getItem("authToken");
   if (!token) {
@@ -33,7 +54,9 @@ export const joinTournament = async (tournamentId: string) => {
 
   const res = await axiosInstance.post(
     `/api/tournament/${tournamentId}/join`,
-    {}, // body rỗng
+    {
+      status: "join",
+    }, // body rỗng
     {
       headers: {
         Authorization: `Bearer ${token}`, // Gửi token lên BE

@@ -3,6 +3,7 @@ import { StyleSheet, Text, View, TouchableOpacity, Image, TextInput, KeyboardAvo
 import { useAuth } from '../hooks/AuthContext';
 import { fetchLoginWithPhone } from '../services/api/auth.services';
 import { saveToken } from './login';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function LoginWithPhone({ navigation }: any) {
   const { login } = useAuth();
@@ -50,6 +51,8 @@ export default function LoginWithPhone({ navigation }: any) {
                 .then(data => {
                     // console.log("Login successful:", data);
                     saveToken(data.token);
+                    console.log(data.user);
+                    AsyncStorage.setItem('userId', data.user._id);
                     data.success ? login() : alert('Login failed. Please check your credentials.');
                 })
                 .catch(error => {

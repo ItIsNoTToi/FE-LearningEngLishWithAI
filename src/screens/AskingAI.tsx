@@ -12,49 +12,37 @@ import type { RootState } from "../redux/store";
 import { useChatlog } from "../hooks/useChatlog";
 import { fetchAIStream, startLessonAI, EndLessonAI } from "../services/api/AI.services";
 import { getProfile } from "../services/api/user.services";
+import { makeAIKey, getCachedAI, setCachedAI } from "../services/aiCache";
 import User from "../models/user";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 async function speak(text: string) {
   Speech.speak(text, { language: "en", pitch: 1.0, rate: 1.0 });
 }
 
-export default function LearningWithAI() {
+export default function AskingAI() {
   const [userInput, setUserInput] = useState("");
   const [user, setUser] = useState<User | undefined>(undefined);
   const navigation = useNavigation<any>();
   const selectedLesson = useSelector((s: RootState) => s?.lesson.selectedLesson);
   const flatRef = useRef<FlatList<{ from: "user" | "ai"; text: string }>>(null);
   const [sending, setSending] = useState(false);
-  const [lessonEnded, setLessonEnded] = useState(false);
 
-  // load profile
+  // profile: load 1 lần, nên cache ở AsyncStorage phía service (như bạn đã có)
   useEffect(() => {
     getProfile().then((data) => setUser(data.data)).catch(console.error);
   }, []);
 
-  // start lesson → AI hỏi trước
-  const { data: messages = [], appendMessage, patchLastAIMessage } =
-    useChatlog(user?._id, selectedLesson?._id);
-
+  // start/finish lesson
   useEffect(() => {
     if (!user || !selectedLesson?._id) return;
     let mounted = true;
-    (async () => {
-      try {
-        const d = await startLessonAI(user._id, selectedLesson._id, "practice");
-        if (mounted) {
-          Alert.alert("Info", d.message);
-          appendMessage({ from: "ai", text: d.firstQuestion });
-          speak(d.firstQuestion);
-        }
-      } catch (err) {
-        console.error(err);
-      }
-    })();
+    startLessonAI(user._id, selectedLesson._id, 'freechat')
+      .then((d) => mounted && Alert.alert("Info", d.message))
+      .catch(console.error);
     return () => { mounted = false; };
   }, [user, selectedLesson]);
 
-  // confirm before leaving
   useEffect(() => {
     const unsubscribe = navigation.addListener("beforeRemove", (e: any) => {
       e.preventDefault();
@@ -86,57 +74,97 @@ export default function LearningWithAI() {
     }, [])
   );
 
-  // auto scroll khi có tin nhắn mới
+  // dùng hook cache chatlog
+  const { data: messages = [], appendMessage, patchLastAIMessage } =
+    useChatlog(user?._id, selectedLesson?._id);
+
+  // auto scroll cuối khi messages đổi
   useEffect(() => {
     flatRef.current?.scrollToEnd({ animated: true });
   }, [messages]);
 
   if (!selectedLesson) return <Text>No lesson selected</Text>;
 
-  // --- Gửi câu trả lời ---
+  // --- Gửi tin nhắn ---
   const handleSend = async () => {
-    if (sending) return; 
+    if (sending) return; // chặn spam
     setSending(true);
+    if (!userInput.trim() || !selectedLesson?._id || !user?._id) return;
 
-    if (!userInput.trim() || !selectedLesson?._id || !user?._id) {
-      setSending(false);
-      return;
+    const prompt = userInput;
+    const cacheKey = makeAIKey(selectedLesson?._id, prompt);
+
+    // 1) append message user
+    appendMessage({ from: "user", text: prompt });
+
+    // 2) Nếu đã có câu trả lời trong cache → dùng luôn, không gọi API
+    // const cached = getCachedAI(cacheKey);
+    // if (cached) {
+    //   // console.log("Using cached AI response", JSON.stringify(cached));
+    //   appendMessage({ from: "ai", text: cached } as any);
+    //   setUserInput("");
+    //   return;
+    // }
+    try {
+      const cached = await AsyncStorage.getItem(cacheKey);
+      if (cached) {
+        // Parse the cached value if it's JSON, otherwise use as string
+        let cachedText: string;
+        try {
+          const parsed = JSON.parse(cached);
+          cachedText = typeof parsed === 'string' ? parsed : parsed.text || parsed.value || cached;
+        } catch {
+          cachedText = cached;
+        }
+        
+        appendMessage({ from: "ai", text: String(cachedText) });
+        setUserInput("");
+        return;
+      }
+    } catch (error) {
+      console.error("Error reading cache:", error);
     }
 
-    const studentAnswer = userInput.trim();
-    appendMessage({ from: "user", text: studentAnswer });
+    // 3) Nếu chưa có, bắt đầu 1 message rỗng cho AI và stream
+    appendMessage({ from: "ai", text: "" });
     setUserInput("");
 
-    appendMessage({ from: "ai", text: "" });
+    let es: EventSource | null = null;
     let fullText = "";
 
     try {
-      fetchAIStream(
+      es = fetchAIStream(
         {
           userId: user._id,
           lessonId: selectedLesson._id,
-          userSpeechText: `The student answered: "${studentAnswer}". ...`,
+          userSpeechText: prompt,
         },
-        (parsed) => {
-          if (parsed.text) {
-            fullText += parsed.text;
-            patchLastAIMessage(parsed.text);
-          }
+        (delta: string) => {
+          fullText += delta;
+          patchLastAIMessage(delta); // cập nhật dần dần UI + cache
         },
-        () => { // DONE
-          if (fullText) speak(fullText);
-          setSending(false);
-        },
-        () => { // END
-          setLessonEnded(true);
-          setSending(false);
+        () => {
+          // hoàn tất: lưu cache để lần sau không gọi lại
+          setCachedAI(cacheKey, fullText);
+          // tuỳ chọn: đọc to
+          speak(fullText);
+          setSending(false); 
         }
-      );
+        
+      ) as unknown as EventSource;
     } catch (err) {
       setSending(false);
       console.error("fetchAIStream error:", err);
+    } finally {
+      // đảm bảo cleanup khi unmount/leave (phòng memory leak)
+      // (ở đây đã close trong onDone/error của fetchAIStream, phòng hờ thêm)
+      // es?.close?.();
+      es?.close?.();
+      setSending(false);
     }
   };
+
+  // console.log("Rendering LearningWithAI, messages:", messages);
 
   return (
     <KeyboardAvoidingView
@@ -145,7 +173,7 @@ export default function LearningWithAI() {
       keyboardVerticalOffset={Platform.OS === "ios" ? 80 : 0}
     >
       <View style={{ flex: 1 }}>
-        <Text style={styles.title}>{selectedLesson.title} (Practice Mode)</Text>
+        <Text style={styles.title}>{selectedLesson.title}</Text>
 
         <FlatList
           ref={flatRef}
@@ -169,26 +197,11 @@ export default function LearningWithAI() {
             flatRef.current?.scrollToEnd({ animated: true });
           }}
         />
-        {lessonEnded && (
-          <TouchableOpacity
-            style={{ padding: 12, backgroundColor: "red", borderRadius: 8, margin: 16 }}
-            onPress={() => {
-              EndLessonAI(user?._id, selectedLesson?._id)
-                .then((d) => Alert.alert("Info", d.message))
-                .catch(console.error);
-              navigation.goBack();
-            }}
-          >
-            <Text style={{ color: "#fff", fontSize: 16, textAlign: "center" }}>
-              Finish
-            </Text>
-          </TouchableOpacity>
-        )}
         <View style={styles.inputContainer}>
           <TextInput
             value={userInput}
             onChangeText={setUserInput}
-            placeholder="Your answer..."
+            placeholder="Type in English..."
             style={styles.input}
             returnKeyType="send"
             onSubmitEditing={handleSend}

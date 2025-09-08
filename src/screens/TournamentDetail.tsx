@@ -1,13 +1,29 @@
 import { View, Text, TouchableOpacity, FlatList, StyleSheet } from "react-native";
 import { Tournament } from "../models/tournament";
 import { useEffect, useState } from "react";
-import { fetchTournamentById, joinTournament } from "../services/api/tournament.services";
+import { fetchTournamentById, joinTournament, leaveTournament } from "../services/api/tournament.services";
 import Constants from "expo-constants";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { jwtDecode } from "jwt-decode";
+
+type TokenPayload = {
+  id: string; // hoặc userId tùy backend bạn encode
+  exp: number;
+};
 
 export default function TournamentDetailScreen({ route, navigation }: any) {
   const [tournament, setTournament] = useState<Tournament>();
   const [loading, setLoading] = useState(false);
+  const [userId, setUserId] = useState<string | null>(null);
   const tournamentId = route.params.tournamentId;
+
+  const loadUserId = async () => {
+    const token = await AsyncStorage.getItem("authToken");
+    if (token) {
+      const decoded = jwtDecode<TokenPayload>(token);
+      setUserId(decoded.id); 
+    }
+  };
 
   const loadTournament = async () => {
     try {
@@ -19,6 +35,7 @@ export default function TournamentDetailScreen({ route, navigation }: any) {
   };
 
   useEffect(() => {
+    loadUserId();
     loadTournament();
   }, []);
 
@@ -26,14 +43,29 @@ export default function TournamentDetailScreen({ route, navigation }: any) {
     if (!tournament) return;
     try {
       setLoading(true);
-      await joinTournament(tournament._id); // gọi API join
-      await loadTournament(); // load lại data để có participants mới
+      await joinTournament(tournament._id);
+      await loadTournament();
     } catch (err) {
       console.error("Error joining tournament:", err);
     } finally {
       setLoading(false);
     }
   };
+
+  const handleLeave = async () => {
+    if (!tournament) return;
+    try {
+      setLoading(true);
+      await leaveTournament(tournament._id);
+      await loadTournament();
+    } catch (err) {
+      console.error("Error leaving tournament:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const isJoined = tournament?.participants.some((p) => p._id === userId);
 
   return (
     <View style={styles.container}>
@@ -49,10 +81,16 @@ export default function TournamentDetailScreen({ route, navigation }: any) {
             End Date: {new Date(tournament.endDate).toLocaleDateString()}
           </Text>
 
-          {/* Button Join */}
-          <TouchableOpacity style={styles.joinBtn} onPress={handleJoin} disabled={loading}>
-            <Text style={styles.joinBtnText}>{loading ? "Joining..." : "Join Tournament"}</Text>
-          </TouchableOpacity>
+          {/* Button Join / Leave */}
+          {isJoined ? (
+            <TouchableOpacity style={[styles.joinBtn, { backgroundColor: "red" }]} onPress={handleLeave} disabled={loading}>
+              <Text style={styles.joinBtnText}>{loading ? "Leaving..." : "Leave Tournament"}</Text>
+            </TouchableOpacity>
+          ) : (
+            <TouchableOpacity style={styles.joinBtn} onPress={handleJoin} disabled={loading}>
+              <Text style={styles.joinBtnText}>{loading ? "Joining..." : "Join Tournament"}</Text>
+            </TouchableOpacity>
+          )}
 
           {/* Danh sách participants */}
           <Text style={styles.subTitle}>Participants:</Text>
@@ -77,7 +115,7 @@ export default function TournamentDetailScreen({ route, navigation }: any) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1,  marginTop: Constants.statusBarHeight, padding: 16, backgroundColor: "#fff" },
+  container: { flex: 1, marginTop: Constants.statusBarHeight, padding: 16, backgroundColor: "#fff" },
   title: { fontSize: 20, fontWeight: "bold", marginBottom: 16 },
   label: { fontSize: 16, marginBottom: 8 },
   joinBtn: {

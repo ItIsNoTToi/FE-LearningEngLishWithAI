@@ -1,33 +1,74 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, FlatList, TouchableOpacity, StyleSheet } from "react-native";
+import { View, Text, FlatList, TouchableOpacity, StyleSheet, Alert } from "react-native";
 import { getLesson } from "../services/api/lesson.services";
 import { useNavigation } from "@react-navigation/native";
 import Lesson from "../models/lesson";
+import User from '../models/user';
 import { useDispatch } from "react-redux";
 import { setSelectedLesson } from "../features/lesson/lesson.store";
 import Constants from "expo-constants";
+import { progress } from "../models/progress";
+import {fetchProgressApi} from "../services/api/progress.services";
+import { getProfile } from "../services/api/user.services";
 
 export default function ListLesson() {
   const navigation = useNavigation();
   const [lessons, setLessons] = useState<Lesson[]>([]);
+  const [user, setUser] = useState<User>();
+  const [progresses, setProgresses] = useState<progress[]>([]);
   const dispatch = useDispatch();
 
   useEffect(() => {
+    getProfile()
+      .then(data => setUser(data.data))
+      .catch(error => console.error(error));
     getLesson()
       .then((data) => setLessons(data.data))
       .catch((error) => console.error(error));
-  }, []); // ✅ chỉ gọi 1 lần
+  }, []);
 
-  const goToLearningWithAI = (lesson: Lesson) => {
-    dispatch(setSelectedLesson(lesson));
-    navigation.navigate("LearningWithAI" as never);
+  // Khi user đã có, mới fetch progress
+  useEffect(() => {
+    if (user?._id) {
+      fetchProgressApi(user._id)
+        .then((data) => setProgresses(data.data))
+        .catch((error) => console.error(error));
+    }
+  }, [user]);
+
+  const isLessonDisabled = (index: number) => {
+    if (index === 0) return false; // Bài đầu luôn mở
+    const prevLesson = lessons[index - 1];
+    const prevProgress = progresses.find(
+      p =>
+        (typeof p.lesson === "string" && p.lesson === prevLesson._id) ||
+        // Nếu có trường hợp populate object:
+        (typeof p.lesson === "object" && "._id" in p.lesson && p.lesson._id === prevLesson._id)
+    );
+    return !(prevProgress && prevProgress.status === "completed");
   };
 
-  const renderLesson = ({ item }: { item: Lesson }) => (
+  const goToLesson = (lesson: Lesson) => {
+    dispatch(setSelectedLesson(lesson));
+    //Practice mode (AI hỏi trước): Giúp học viên có hướng dẫn, luyện tập structured.
+    //Free chat mode (người học hỏi): Giúp luyện phản xạ, tự do sáng tạo.
+    Alert.alert(
+      "Chọn chế độ học",
+      "Bạn muốn luyện tập như thế nào?",
+      [
+        { text: "Practice Mode", onPress: () => navigation.navigate("LearningWithAI" as never) },
+        { text: "Free Chat Mode", onPress: () => navigation.navigate("AskingAI" as never) },
+        { text: "Hủy", style: "cancel" }
+      ]
+    );
+  };
+
+  const renderLesson = ({ item, index }: { item: Lesson, index: number }) => (
     <TouchableOpacity
-      style={styles.card}
+      style={[styles.card, isLessonDisabled(index) && { opacity: 0.5 }]}
+      disabled={isLessonDisabled(index)} 
       activeOpacity={0.7}
-      onPress={() => goToLearningWithAI(item)}
+      onPress={() => goToLesson(item)}
     >
       <View style={styles.cardHeader}>
         <Text style={styles.icon}>📘</Text>
@@ -38,6 +79,14 @@ export default function ListLesson() {
       </Text>
     </TouchableOpacity>
   );
+
+  // if(lessons){
+  //   console.log(lessons);
+  // }
+
+  if(progresses){
+    console.log(progresses);
+  }
 
   return (
     <View style={styles.container}>
