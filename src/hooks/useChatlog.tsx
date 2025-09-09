@@ -8,9 +8,20 @@ type ChatMessage = { from: "user" | "ai"; text: string };
 const storageKey = (userId: string, lessonId: string) =>
   `chatlog:${userId}:${lessonId}`;
 
-export function useChatlog(userId?: string, lessonId?: string) {
-  // console.log("useChatlog: ", userId, lessonId);
+// helper: luôn lưu cache cùng format {role, content}
+async function saveCache(userId: string, lessonId: string, msgs: ChatMessage[]) {
+  await AsyncStorage.setItem(
+    storageKey(userId, lessonId),
+    JSON.stringify(
+      msgs.map((m) => ({
+        role: m.from,
+        content: m.text,
+      }))
+    )
+  );
+}
 
+export function useChatlog(userId?: string, lessonId?: string) {
   const queryClient = useQueryClient();
 
   const { data: messages = [] } = useQuery<ChatMessage[]>({
@@ -20,29 +31,33 @@ export function useChatlog(userId?: string, lessonId?: string) {
 
       const key = storageKey(userId, lessonId);
 
-      // 1. Thử lấy từ AsyncStorage
+      // 1. Lấy cache
       const cached = await AsyncStorage.getItem(key);
+      let initial: ChatMessage[] = [];
       if (cached) {
         const raw = JSON.parse(cached);
-        return raw.map((m: any) => ({
+        initial = raw.map((m: any) => ({
           from: m.role === "user" ? "user" : "ai",
           text: m.content ?? "",
-        })) as ChatMessage[];
+        }));
       }
 
-      // 2. Nếu không có, gọi API
+      // 2. Gọi API
       const res = await fetchChatlog(userId, lessonId);
       const raw = res?.data?.messages ?? [];
-
       const messages: ChatMessage[] = raw.map((m: any) => ({
         from: m.role === "user" ? "user" : "ai",
         text: m.content ?? "",
       }));
 
-      // 3. Lưu lại cache
-      await AsyncStorage.setItem(key, JSON.stringify(raw));
+      // 3. Lưu lại cache mới
+      if (messages.length > 0) {
+        await AsyncStorage.setItem(key, JSON.stringify(raw));
+        return messages;
+      }
 
-      return messages;
+      // Nếu API rỗng → fallback cache
+      return initial;
     },
     enabled: !!userId && !!lessonId,
     staleTime: 1000 * 60,
@@ -53,18 +68,7 @@ export function useChatlog(userId?: string, lessonId?: string) {
       ["chatlog", userId, lessonId],
       (old = []) => {
         const newMsgs = [...old, msg];
-        if (userId && lessonId) {
-          // Lưu lại ở dạng gốc để sau này dễ map
-          AsyncStorage.setItem(
-            storageKey(userId, lessonId),
-            JSON.stringify(
-              newMsgs.map((m) => ({
-                role: m.from,
-                content: m.text,
-              }))
-            )
-          );
-        }
+        if (userId && lessonId) saveCache(userId, lessonId, newMsgs);
         return newMsgs;
       }
     );
@@ -73,7 +77,7 @@ export function useChatlog(userId?: string, lessonId?: string) {
   const patchLastAIMessage = (incoming: string) => {
     if (!userId || !lessonId) return;
 
-    queryClient.setQueryData<{ from: "user" | "ai"; text: string }[]>(
+    queryClient.setQueryData<ChatMessage[]>(
       ["chatlog", userId, lessonId],
       (old = []) => {
         if (!old.length) return old;
@@ -84,21 +88,14 @@ export function useChatlog(userId?: string, lessonId?: string) {
 
         let newText = "";
         if (incoming.startsWith(last.text)) {
-          // server trả snapshot => replace toàn bộ text
-          newText = incoming;
+          newText = incoming; // snapshot
         } else {
-          // server trả delta => nối thêm
-          newText = last.text + incoming;
+          newText = last.text + incoming; // delta
         }
 
         newMsgs[newMsgs.length - 1] = { ...last, text: newText };
 
-        // lưu cache
-        AsyncStorage.setItem(
-          `chatlog:${userId}:${lessonId}`,
-          JSON.stringify(newMsgs)
-        );
-
+        saveCache(userId, lessonId, newMsgs);
         return newMsgs;
       }
     );

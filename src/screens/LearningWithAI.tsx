@@ -10,7 +10,7 @@ import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import { useSelector } from "react-redux";
 import type { RootState } from "../redux/store";
 import { useChatlog } from "../hooks/useChatlog";
-import { fetchAIStream, startLessonAI, EndLessonAI } from "../services/api/AI.services";
+import { fetchAIStream, startLessonAI, EndLessonAI, PauseLessonAI } from "../services/api/AI.services";
 import { getProfile } from "../services/api/user.services";
 import User from "../models/user";
 
@@ -23,7 +23,8 @@ export default function LearningWithAI() {
   const [user, setUser] = useState<User | undefined>(undefined);
   const navigation = useNavigation<any>();
   const selectedLesson = useSelector((s: RootState) => s?.lesson.selectedLesson);
-  const flatRef = useRef<FlatList<{ from: "user" | "ai"; text: string }>>(null);
+  const flatRef = useRef<FlatList<any>>(null);
+  const [isEnding, setIsEnding] = useState(false);
   const [sending, setSending] = useState(false);
   const [lessonEnded, setLessonEnded] = useState(false);
 
@@ -38,6 +39,7 @@ export default function LearningWithAI() {
 
   useEffect(() => {
     if (!user || !selectedLesson?._id) return;
+    if (messages.length > 0) return; // Nếu đã có chatlog thì không gọi startLessonAI
     let mounted = true;
     (async () => {
       try {
@@ -52,11 +54,14 @@ export default function LearningWithAI() {
       }
     })();
     return () => { mounted = false; };
-  }, [user, selectedLesson]);
+  }, [user, selectedLesson, messages.length]);
 
   // confirm before leaving
   useEffect(() => {
     const unsubscribe = navigation.addListener("beforeRemove", (e: any) => {
+      if (isEnding) {
+        return;
+      }
       e.preventDefault();
       Alert.alert("Xác nhận", "Bạn có muốn quay lại không?", [
         { text: "Hủy", style: "cancel" },
@@ -66,11 +71,11 @@ export default function LearningWithAI() {
           onPress: async () => {
             Speech.stop();
             try {
-              await EndLessonAI(user?._id, selectedLesson?._id)
+              await PauseLessonAI(user?._id, selectedLesson?._id)
                 .then((d) => Alert.alert("Info", d.message))
                 .catch(console.error);
             } catch (err) {
-              console.error("Failed to finish lesson:", err);
+              console.error("Failed to Pause lesson:", err);
             }
             navigation.dispatch(e.data.action);
           },
@@ -78,7 +83,31 @@ export default function LearningWithAI() {
       ]);
     });
     return unsubscribe;
-  }, [user, selectedLesson, navigation]);
+  }, [user, selectedLesson, navigation, isEnding]);
+
+  const BtnEnd = async () => {
+    Alert.alert("Xác nhận", "Bạn có muốn kết thúc bài học không?", [
+      { text: "Hủy", style: "cancel" },
+      {
+        text: "Có",
+        style: "destructive",
+        onPress: async () => {
+          setIsEnding(true);
+          Speech.stop();
+          if (!user?._id || !selectedLesson?._id) return;
+          try {
+            await EndLessonAI(user._id, selectedLesson._id)
+              .then((d) => Alert.alert("Info", d.message))
+              .catch(console.error);
+          } catch (err) {
+            console.error("Failed to finish lesson:", err);
+          }
+          // Quay lại màn trước
+          navigation.goBack();
+        },
+      },
+    ]);
+  };
 
   useFocusEffect(
     React.useCallback(() => {
@@ -87,8 +116,16 @@ export default function LearningWithAI() {
   );
 
   // auto scroll khi có tin nhắn mới
+  // useEffect(() => {
+  //   flatRef.current?.scrollToEnd({ animated: true });
+  // }, [messages]);
   useEffect(() => {
-    flatRef.current?.scrollToEnd({ animated: true });
+    if (messages.length > 0) {
+      flatRef.current?.scrollToOffset({
+        offset: messages.length * 100, // ước lượng chiều cao 1 item ~100
+        animated: true,
+      });
+    }
   }, [messages]);
 
   if (!selectedLesson) return <Text>No lesson selected</Text>;
@@ -115,12 +152,12 @@ export default function LearningWithAI() {
         {
           userId: user._id,
           lessonId: selectedLesson._id,
-          userSpeechText: `The student answered: "${studentAnswer}". ...`,
+          userSpeechText: studentAnswer,
         },
         (parsed) => {
-          if (parsed.text) {
-            fullText += parsed.text;
-            patchLastAIMessage(parsed.text);
+          if (parsed.delta) {
+            fullText += parsed.delta;
+            patchLastAIMessage(parsed.delta);
           }
         },
         () => { // DONE
@@ -128,6 +165,7 @@ export default function LearningWithAI() {
           setSending(false);
         },
         () => { // END
+          // console.log("Received [END], setLessonEnded true");
           setLessonEnded(true);
           setSending(false);
         }
@@ -172,12 +210,7 @@ export default function LearningWithAI() {
         {lessonEnded && (
           <TouchableOpacity
             style={{ padding: 12, backgroundColor: "red", borderRadius: 8, margin: 16 }}
-            onPress={() => {
-              EndLessonAI(user?._id, selectedLesson?._id)
-                .then((d) => Alert.alert("Info", d.message))
-                .catch(console.error);
-              navigation.goBack();
-            }}
+            onPress={BtnEnd}
           >
             <Text style={{ color: "#fff", fontSize: 16, textAlign: "center" }}>
               Finish

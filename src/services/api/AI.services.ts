@@ -33,6 +33,7 @@ export const fetchAIStream = (
     // Xử lý text bình thường
     try {
       const parsed = JSON.parse(event.data);
+      // console.log(parsed);
       onDelta(parsed);
     } catch (err) {
       console.warn("Parse error:", err, event.data);
@@ -65,6 +66,18 @@ export const startLessonAI = async (userId: any, lessonId: any, mode: any) => {
 export const EndLessonAI = async (userId: any, lessonId: any) => {
     try {
         const response = await axiosInstance.post('/api/ai/finish',{
+            userId: userId, 
+            lessonId: lessonId 
+        })   
+        return response.data;
+    } catch (error: any) {
+        throw Error (error.message);
+    }
+}
+
+export const PauseLessonAI = async (userId: any, lessonId: any) => {
+  try {
+        const response = await axiosInstance.post('/api/ai/pause',{
             userId: userId, 
             lessonId: lessonId 
         })   

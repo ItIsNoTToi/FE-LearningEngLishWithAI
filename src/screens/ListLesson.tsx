@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { View, Text, FlatList, TouchableOpacity, StyleSheet, Alert } from "react-native";
 import { getLesson } from "../services/api/lesson.services";
 import { useNavigation } from "@react-navigation/native";
@@ -10,6 +10,7 @@ import Constants from "expo-constants";
 import { progress } from "../models/progress";
 import {fetchProgressApi} from "../services/api/progress.services";
 import { getProfile } from "../services/api/user.services";
+import { useFocusEffect } from "@react-navigation/native";
 
 export default function ListLesson() {
   const navigation = useNavigation();
@@ -22,19 +23,21 @@ export default function ListLesson() {
     getProfile()
       .then(data => setUser(data.data))
       .catch(error => console.error(error));
-    getLesson()
-      .then((data) => setLessons(data.data))
-      .catch((error) => console.error(error));
   }, []);
 
   // Khi user đã có, mới fetch progress
-  useEffect(() => {
-    if (user?._id) {
-      fetchProgressApi(user._id)
-        .then((data) => setProgresses(data.data))
-        .catch((error) => console.error(error));
-    }
-  }, [user]);
+  useFocusEffect(
+    useCallback(() => {
+      getLesson()
+      .then((data) => setLessons(data.data))
+      .catch((error) => console.error(error));
+      if (user?._id) {
+        fetchProgressApi(user._id)
+          .then((data) => setProgresses(data.data))
+          .catch((error) => console.error(error));
+      }
+    }, [user])
+  );
 
   const isLessonDisabled = (index: number) => {
     if (index === 0) return false; // Bài đầu luôn mở
@@ -84,9 +87,9 @@ export default function ListLesson() {
   //   console.log(lessons);
   // }
 
-  if(progresses){
-    console.log(progresses);
-  }
+  // if(progresses){
+  //   console.log(progresses);
+  // }
 
   return (
     <View style={styles.container}>
