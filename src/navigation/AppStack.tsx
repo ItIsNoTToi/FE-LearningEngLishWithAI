@@ -19,6 +19,7 @@ import ReadingDetailScreen from '../screens/ReadingDetailScreen';
 import Lesson from '../models/lesson';
 import ResultScreen from '../screens/ResultScreen';
 import TournamentDetailScreen from '../screens/TournamentDetail';
+import LearningWithAudio from '../screens/LearningWithAudio';
 
 export type QuizStackParamList = {
   QuizTopic: undefined;
@@ -176,6 +177,11 @@ export default function AppNavigation() {
         name="Reading"
         component={ReadingTabs}
         options={{ title: 'Reading', headerShown: false }}
+      />
+      <Stack.Screen
+        name="LearningWithAudio"
+        component={LearningWithAudio}
+        options={{ title: 'Learning With Audio', headerShown: false }}
       />
       <Stack.Screen
         name="LearningWithAI"

@@ -1,98 +1,119 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, SafeAreaView } from 'react-native';
-import { Audio } from 'expo-av';
-import { ListeningItem } from '../models/ListeningItem';
-
-const LISTENING_DATA: ListeningItem[] = [
-  {
-    id: '1',
-    text: 'Abate',
-    audioUri: 'https://ssl.gstatic.com/dictionary/static/sounds/oxford/abate--_gb_1.mp3',
-  },
-  {
-    id: '2',
-    text: 'Benevolent',
-    audioUri: 'https://ssl.gstatic.com/dictionary/static/sounds/oxford/benevolent--_gb_1.mp3',
-  },
-  // Thêm data nếu cần
-];
+import React, { useEffect, useState, useCallback } from "react";
+import { View, Text, FlatList, TouchableOpacity, StyleSheet, Alert } from "react-native";
+import { getLesson } from "../services/api/lesson.services";
+import { useNavigation } from "@react-navigation/native";
+import Lesson from "../models/lesson";
+import User from '../models/user';
+import { useDispatch } from "react-redux";
+import { setSelectedLesson } from "../features/lesson/lesson.store";
+import Constants from "expo-constants";
+import { ListeningResult } from "../models/ListeningResult";
+import {fetchListenResultApi} from "../services/api/progress.services";
+import { getProfile } from "../services/api/user.services";
+import { useFocusEffect } from "@react-navigation/native";
 
 export default function Listening() {
-  const [sound, setSound] = useState<Audio.Sound | null>(null);
-  const [playingId, setPlayingId] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
+  const navigation = useNavigation();
+  const [lessons, setLessons] = useState<Lesson[]>([]);
+  const [user, setUser] = useState<User>();
+  const [ListeningResult, setListeningResult] = useState<ListeningResult[]>([]);
+  const dispatch = useDispatch();
 
   useEffect(() => {
-    return () => {
-      if (sound) {
-        sound.unloadAsync();
-      }
-    };
-  }, [sound]);
+    getProfile()
+      .then(data => setUser(data.data))
+      .catch(error => console.error(error));
+  }, []);
 
-  const playSound = async (item: ListeningItem) => {
-    try {
-      if (sound) {
-        await sound.unloadAsync();
+  // Khi user đã có, mới fetch progress
+  useFocusEffect(
+    useCallback(() => {
+      getLesson()
+      .then((data) => setLessons(data.data))
+      .catch((error) => console.error(error));
+      if (user?._id) {
+        fetchListenResultApi(user._id)
+          .then((data) => setListeningResult(data.data))
+          .catch((error) => console.error(error));
       }
-      setLoading(true);
-      const { sound: newSound } = await Audio.Sound.createAsync({ uri: item.audioUri });
-      setSound(newSound);
-      setPlayingId(item.id);
-      setLoading(false);
-      await newSound.playAsync();
-      newSound.setOnPlaybackStatusUpdate((status: any) => {
-        if (status.isLoaded && !status.isPlaying) {
-          setPlayingId(null);
-        }
-      });
-    } catch (error) {
-      console.error('Error playing sound:', error);
-      setLoading(false);
-      setPlayingId(null);
-    }
+    }, [user])
+  );
+
+  const isLessonDisabled = (index: number) => {
+    if (index === 0) return false; // Bài đầu luôn mở
+    const prevLesson = lessons[index - 1];
+    const prevProgress = ListeningResult.find(
+      p =>
+        (typeof p.lesson === "string" && p.lesson === prevLesson._id) ||
+        // Nếu có trường hợp populate object:
+        (typeof p.lesson === "object" && "._id" in p.lesson && p.lesson._id === prevLesson._id)
+    );
+    return !(prevProgress && prevProgress.status === "completed");
   };
 
-  return (
-    <SafeAreaView style={styles.container}>
-      <Text style={styles.title}>Listening Practice</Text>
+  const goToLesson = (lesson: Lesson) => {
+    dispatch(setSelectedLesson(lesson));
+    navigation.navigate("LearningWithAudio" as never) 
+  };
 
-      {LISTENING_DATA.map((item) => (
-        <View key={item.id} style={styles.itemContainer}>
-          <Text style={styles.text}>{item.text}</Text>
-          <TouchableOpacity
-            style={styles.playButton}
-            onPress={() => playSound(item)}
-            disabled={loading && playingId === item.id}
-          >
-            <Text style={styles.playButtonText}>
-              {playingId === item.id ? (loading ? 'Loading...' : 'Playing') : 'Play'}
-            </Text>
-          </TouchableOpacity>
-        </View>
-      ))}
-    </SafeAreaView>
+  const renderLesson = ({ item, index }: { item: Lesson, index: number }) => (
+    <TouchableOpacity
+      style={[styles.card, isLessonDisabled(index) && { opacity: 0.5 }]}
+      disabled={isLessonDisabled(index)} 
+      activeOpacity={0.7}
+      onPress={() => goToLesson(item)}
+    >
+      <View style={styles.cardHeader}>
+        <Text style={styles.icon}>📘</Text>
+        <Text style={styles.title}>{item.title}</Text>
+      </View>
+      <Text style={styles.description} numberOfLines={2}>
+        {item.description}
+      </Text>
+    </TouchableOpacity>
+  );
+
+  return (
+    <View style={styles.container}>
+      <Text style={styles.header}>📖 Lessons</Text>
+      <FlatList
+        data={lessons}
+        keyExtractor={(item) => item._id}
+        renderItem={renderLesson}
+        contentContainerStyle={styles.list}
+      />
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 16, paddingTop: 40, backgroundColor: '#fff' },
-  title: { fontSize: 28, fontWeight: 'bold', marginBottom: 24, textAlign: 'center' },
-  itemContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 20,
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderColor: '#ccc',
-  },
-  text: { fontSize: 20 },
-  playButton: {
-    backgroundColor: '#4CAF50',
+  container: {
+    flex: 1,
+    backgroundColor: "#f8fafc",
     paddingHorizontal: 20,
-    paddingVertical: 8,
-    borderRadius: 8,
+    paddingTop: Constants.statusBarHeight + 20,
   },
-  playButtonText: { color: '#fff', fontWeight: '600' },
+  header: {
+    fontSize: 26,
+    fontWeight: "800",
+    marginBottom: 20,
+    textAlign: "center",
+    color: "#1e293b",
+  },
+  list: { paddingBottom: 20 },
+  card: {
+    backgroundColor: "#fff",
+    padding: 16,
+    marginBottom: 14,
+    borderRadius: 12,
+    shadowColor: "#000",
+    shadowOpacity: 0.06,
+    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 3 },
+    elevation: 2,
+  },
+  cardHeader: { flexDirection: "row", alignItems: "center", marginBottom: 8 },
+  icon: { fontSize: 20, marginRight: 8 },
+  title: { fontSize: 18, fontWeight: "600", color: "#334155", flexShrink: 1 },
+  description: { fontSize: 15, color: "#64748b", lineHeight: 20 },
 });
