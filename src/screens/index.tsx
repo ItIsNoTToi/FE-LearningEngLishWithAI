@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, Image, TouchableOpacity, ScrollView } from 'rea
 import { Ionicons } from '@expo/vector-icons';
 import Constants from 'expo-constants';
 
-export default function HomeSreen({ navigation }: any) {
+export default function HomeScreen({ navigation }: any) {
   return (
     <ScrollView style={styles.container}>
       <View style={styles.header}>
@@ -11,24 +11,34 @@ export default function HomeSreen({ navigation }: any) {
         <Text style={styles.subGreeting}>Welcome back to LearnE</Text>
       </View>
 
-      <Image source={require('../../assets/ai-teacher.png')} style={styles.banner} />
+      <Image source={require('../uploads/assets/ai-teacher.png')} style={styles.banner} />
 
       <Text style={styles.sectionTitle}>Start Learning</Text>
 
       <View style={styles.cardContainer}>
-        <TouchableOpacity style={styles.card} onPress={() => navigation.navigate('Vocabulary')}>
-          <Ionicons name="book-outline" size={32} color="#4f6ef7" />
-          <Text style={styles.cardText}>Vocabulary</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity style={styles.card} onPress={() => navigation.navigate('Reading')}>
-          <Ionicons name="chatbubbles-outline" size={32} color="#4f6ef7" />
-          <Text style={styles.cardText}>Reading</Text>
-        </TouchableOpacity>
-
         <TouchableOpacity style={styles.card} onPress={() => navigation.navigate('AIListening')}>
           <Ionicons name="ear-outline" size={32} color="#4f6ef7" />
-          <Text style={styles.cardText}>Listening</Text>
+          <Text style={styles.cardText}>Listen</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity style={styles.card} onPress={() => navigation.navigate('Speak')}>
+          <Ionicons name="mic-outline" size={32} color="#4f6ef7" />
+          <Text style={styles.cardText}>Speak</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity style={styles.card} onPress={() => navigation.navigate('Read')}>
+          <Ionicons name="book-outline" size={32} color="#4f6ef7" />
+          <Text style={styles.cardText}>Read</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity style={styles.card} onPress={() => navigation.navigate('Write')}>
+          <Ionicons name="pencil-outline" size={32} color="#4f6ef7" />
+          <Text style={styles.cardText}>Write</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity style={styles.card} onPress={() => navigation.navigate('Vocabulary')}>
+          <Ionicons name="library-outline" size={32} color="#4f6ef7" />
+          <Text style={styles.cardText}>Vocabulary</Text>
         </TouchableOpacity>
 
         <TouchableOpacity style={styles.card} onPress={() => navigation.navigate('QuizTest')}>
@@ -72,7 +82,7 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '600',
     color: '#1a1a1a',
-    marginBottom: 12,
+    marginBottom: 16,
   },
   cardContainer: {
     flexDirection: 'row',
@@ -89,6 +99,10 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginBottom: 16,
     elevation: 3,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
   },
   cardText: {
     marginTop: 10,

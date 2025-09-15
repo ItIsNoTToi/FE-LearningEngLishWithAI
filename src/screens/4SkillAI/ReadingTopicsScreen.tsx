@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, FlatList, TouchableOpacity, StyleSheet } from 'react-native';
-import { ReadStackParamList } from '../navigation/AppStack';
+import { ReadStackParamList } from '../../navigation/AppStack';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { getLesson } from '../services/api/lesson.services';
-import Lession from '../models/lesson';
+import { getLesson } from '../../services/api/lesson.services';
+import Lession from '../../models/lesson';
 
 type Props = NativeStackScreenProps<ReadStackParamList, 'ReadingTopics'>;
 

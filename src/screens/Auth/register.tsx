@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { StyleSheet, Text, View, TouchableOpacity, TextInput, Image, KeyboardAvoidingView } from 'react-native';
-import { fetchRegister } from '../services/api/auth.services';
-import { useAuth } from '../hooks/AuthContext';
+import { fetchRegister } from '../../services/api/auth.services';
+import { useAuth } from '../../hooks/AuthContext';
 import { ScrollView } from 'react-native-gesture-handler';
 import { saveToken } from './login';
 
@@ -64,7 +64,7 @@ export default function Register({ navigation }: any) {
     <KeyboardAvoidingView behavior="padding" style={{flex: 1}}>
       <ScrollView style={{ flex: 1, backgroundColor: '#f0f6ff', }}>
         <View style={styles.container}>
-          <Image source={require('../../assets/icon.png')} style={styles.logo} />
+          <Image source={require('../../uploads/assets/logo.png')} style={styles.logo} />
 
           <Text style={styles.title}>Create your LearnE Account</Text>
           <Text style={styles.subtitle}>Start your English journey with AI today!</Text>

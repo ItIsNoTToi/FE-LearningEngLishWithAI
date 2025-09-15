@@ -1,7 +1,7 @@
 import { View, Text, TouchableOpacity, FlatList, StyleSheet } from "react-native";
-import { Tournament } from "../models/tournament";
+import { Tournament } from "../../models/tournament";
 import { useEffect, useState } from "react";
-import { fetchTournamentById, joinTournament, leaveTournament } from "../services/api/tournament.services";
+import { fetchTournamentById, joinTournament, leaveTournament } from "../../services/api/tournament.services";
 import Constants from "expo-constants";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { jwtDecode } from "jwt-decode";

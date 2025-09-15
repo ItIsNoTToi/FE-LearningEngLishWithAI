@@ -1,36 +1,47 @@
 import axios from "../../config/axiosconfig";
 import { URL_API } from "@env";
+import * as FileSystem from "expo-file-system";
+import { Audio } from "expo-av";
 
-// Play audio từ URL backend trả về
+export const getLessonAudio = async (lessonId: string) => {
+  try {
+    // console.log(lessonId);
+    const res = await axios.get(`/api/lesson/${lessonId}/audio`);
+    const data = res.data;
+    // console.log(data);
+    return data;
+  } catch (error) {
+    console.log(error);
+  }
+};
+
 export const playLessonAudio = async (
-  userId: string,
   lessonId: string,
   onFinish: (question: string) => void
-) => {
+): Promise<string | null> => {
   try {
-    // 1. Gọi backend để generate audio
     const res = await axios.get(`/api/listen/${lessonId}/AIGenerateAudio`);
     const data = res.data;
 
     if (data.audioUrl) {
       const fullUrl = `${URL_API}${data.audioUrl}`;
-
-      // Phát audio bằng Expo AV
       const { Audio } = await import("expo-av");
       const { sound } = await Audio.Sound.createAsync({ uri: fullUrl });
-
       await sound.playAsync();
 
-      // Đợi phát xong thì gọi API hỏi câu hỏi
       sound.setOnPlaybackStatusUpdate(async (status) => {
         if (status.isLoaded && status.didJustFinish) {
           const qRes = await axios.post(`/api/listen/${lessonId}/ask`, {});
           onFinish(qRes.data.question);
         }
       });
+
+      return fullUrl;
     }
+    return null; // 👈 đảm bảo luôn trả về null khi không có audio
   } catch (err) {
     console.error("Error playing lesson audio:", err);
+    return null;
   }
 };
 

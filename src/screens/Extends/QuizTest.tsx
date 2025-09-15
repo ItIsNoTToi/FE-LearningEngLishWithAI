@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react'; 
 import { View, Text, TouchableOpacity, StyleSheet, SafeAreaView } from 'react-native';
-import { Question } from '../models/question';
+import { Question } from '../../models/question';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { QuizStackParamList } from '../navigation/AppStack';
-import { getQuestionByQuizId, SaveHistoryQuiz } from '../services/api/quiz.services';
+import { QuizStackParamList } from '../../navigation/AppStack';
+import { getQuestionByQuizId, SaveHistoryQuiz } from '../../services/api/quiz.services';
 
 type Props = NativeStackScreenProps<QuizStackParamList, 'Test'>;
 

@@ -11,9 +11,9 @@ import {
   TouchableOpacity,
   Button,
 } from 'react-native';
-import Vocabulary from '../models/vocabulary';
+import Vocabulary from '../../models/vocabulary';
 import VocabularyExplain from './VocabularyExplain';
-import { GetVocabulary } from '../services/api/vocabulary.servics';
+import { GetVocabulary } from '../../services/api/vocabulary.servics';
 
 export default function VocabularyPage() {
   const [search, setSearch] = useState('');

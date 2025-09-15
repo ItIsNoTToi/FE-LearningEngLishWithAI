@@ -1,11 +1,10 @@
 import Constants from 'expo-constants';
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, FlatList, Image, Pressable } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
-import { fetchTournaments } from '../services/api/tournament.services';
-import { Tournament } from '../models/tournament';
-import { formatDate } from '../utils/date';
-import { TournamentStackParamList } from '../navigation/AppStack';
+import { fetchTournaments } from '../../services/api/tournament.services';
+import { Tournament } from '../../models/tournament';
+import { formatDate } from '../../utils/date';
+import { TournamentStackParamList } from '../../navigation/AppStack';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 
 type Props = NativeStackScreenProps<TournamentStackParamList, 'Tournament'>;
@@ -36,7 +35,7 @@ export default function CompetitionScreen({navigation}: Props) {
               onPress={() => navigation.navigate('TournamentDetail', { tournamentId: item._id })}
             >
               <Image
-                source={ item.thumbnailUrl ? { uri: item.thumbnailUrl } : require('../../assets/icon.png') }
+                source={ item.thumbnailUrl ? { uri: item.thumbnailUrl } : require('../../uploads/assets/logo.png') }
                 style={styles.thumbnail}
               />
               <View style={{ flex: 1 }}>

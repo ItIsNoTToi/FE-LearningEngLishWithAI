@@ -1,6 +1,6 @@
 import React from 'react';
 import { Text, StyleSheet, ScrollView, SafeAreaView, View } from 'react-native';
-import { VocabularyExplainProps } from '../models/vocabulary';
+import { VocabularyExplainProps } from '../../models/vocabulary';
 
 export default function VocabularyExplain({
   word,

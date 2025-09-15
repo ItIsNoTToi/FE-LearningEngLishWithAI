@@ -8,11 +8,11 @@ import { Ionicons } from "@expo/vector-icons";
 import * as Speech from "expo-speech";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import { useSelector } from "react-redux";
-import type { RootState } from "../redux/store";
-import { useChatlog } from "../hooks/useChatlog";
-import { fetchAIStream, startLessonAI, EndLessonAI, PauseLessonAI } from "../services/api/AI.services";
-import { getProfile } from "../services/api/user.services";
-import User from "../models/user";
+import type { RootState } from "../../redux/store";
+import { useChatlog } from "../../hooks/useChatlog";
+import { fetchAIStream, startLessonAI, EndLessonAI, PauseLessonAI } from "../../services/api/AI.services";
+import { getProfile } from "../../services/api/user.services";
+import User from "../../models/user";
 
 async function speak(text: string) {
   Speech.speak(text, { language: "en", pitch: 1.0, rate: 1.0 });
@@ -43,9 +43,11 @@ export default function LearningWithAI() {
     let mounted = true;
     (async () => {
       try {
-        const d = await startLessonAI(user._id, selectedLesson._id, "freechat");
+        const d = await startLessonAI(user._id, selectedLesson._id, "practice");
         if (mounted) {
           Alert.alert("Info", d.message);
+          appendMessage({ from: "ai", text: d.firstQuestion });
+          speak(d.firstQuestion);
         }
       } catch (err) {
         console.error(err);

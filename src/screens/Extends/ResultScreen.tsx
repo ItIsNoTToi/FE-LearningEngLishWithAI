@@ -1,7 +1,7 @@
 import React from "react";
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
-import { QuizStackParamList } from "../navigation/AppStack";
+import { QuizStackParamList } from "../../navigation/AppStack";
 
 type Props = NativeStackScreenProps<QuizStackParamList, "Result">;
 

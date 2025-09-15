@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { StyleSheet, Text, View, TouchableOpacity, Image, TextInput, KeyboardAvoidingView } from 'react-native';
-import { useAuth } from '../hooks/AuthContext';
-import { fetchLogin } from '../services/api/auth.services';
+import { useAuth } from '../../hooks/AuthContext';
+import { fetchLogin } from '../../services/api/auth.services';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export async function saveToken(token: string) {
@@ -45,7 +45,7 @@ export default function Login({ navigation }: any) {
   return (
     <KeyboardAvoidingView behavior="padding" style={{flex: 1}}>
       <View style={styles.container}>
-        <Image source={require('../../assets/icon.png')} style={styles.logo} />
+        <Image source={require('../../uploads/assets/logo.png')} style={styles.logo} />
 
         <Text style={styles.title}>Welcome to LearnE</Text>
         <Text style={styles.subtitle}>Learn English with AI – Smart, Fun, Personalized</Text>

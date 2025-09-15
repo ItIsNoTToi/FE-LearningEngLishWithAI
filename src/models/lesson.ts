@@ -10,6 +10,7 @@ export default interface Lesson {
   level: 'beginner' | 'intermediate' | 'advanced';
   order: number;
   content?: string; // văn bản, HTML, JSON...
+  audioUrl: string;
   createdAt?: Date;
   updatedAt?: Date;
   status?: 'close' | 'open';

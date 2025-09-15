@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, FlatList, TouchableOpacity, StyleSheet } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { QuizStackParamList } from '../navigation/AppStack';
-import { Quiz } from '../models/quiz';
-import { GetQuiz } from '../services/api/quiz.services';
+import { QuizStackParamList } from '../../navigation/AppStack';
+import { Quiz } from '../../models/quiz';
+import { GetQuiz } from '../../services/api/quiz.services';
 
 type Props = NativeStackScreenProps<QuizStackParamList, 'QuizTopic'>;
 

@@ -1,9 +1,8 @@
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import axios from "../../config/axiosconfig";
+import axiosInstance from "../../config/axiosconfig";
 
 export const fetchLogin = async (data: any): Promise<any> => {
   try {
-    const response = await axios.post("/api/login", {
+    const response = await axiosInstance.post("/api/login", {
       email: data.email,
       password: data.password,
     });
@@ -15,7 +14,7 @@ export const fetchLogin = async (data: any): Promise<any> => {
     // }
 
     return response.data;
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error fetching login:", error);
     throw error;
   }
@@ -23,7 +22,7 @@ export const fetchLogin = async (data: any): Promise<any> => {
 
 export const fetchLoginWithPhone = async (data: any): Promise<any> => {
   try {
-    const response = await axios.post("/api/loginwithphone", {
+    const response = await axiosInstance.post("/api/loginwithphone", {
       phone: data.phoneNumber,
     });
 
@@ -41,7 +40,7 @@ export const fetchLoginWithPhone = async (data: any): Promise<any> => {
 
 export const fetchRegister = async (userData: any): Promise<any> => {
     try {
-        const response = await axios.post('/api/register', {
+        const response = await axiosInstance.post('/api/register', {
             userData: userData
         });
 

@@ -9,8 +9,8 @@ import {
   StyleSheet,
 } from "react-native";
 import { BarChart } from "react-native-chart-kit";
-import { fetchProgressApi } from "../services/api/progress.services";
-import { progress } from "../models/progress";
+import { fetchProgressApi } from "../../services/api/progress.services";
+import { progress } from "../../models/progress";
 
 interface ProgressProps {
   userId: string;

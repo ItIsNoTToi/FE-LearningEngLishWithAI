@@ -1,15 +1,15 @@
 import React, { useEffect, useState, useCallback } from "react";
 import { View, Text, FlatList, TouchableOpacity, StyleSheet, Alert } from "react-native";
-import { getLesson } from "../services/api/lesson.services";
+import { getLesson } from "../../services/api/lesson.services";
 import { useNavigation } from "@react-navigation/native";
-import Lesson from "../models/lesson";
-import User from '../models/user';
+import Lesson from "../../models/lesson";
+import User from '../../models/user';
 import { useDispatch } from "react-redux";
-import { setSelectedLesson } from "../features/lesson/lesson.store";
+import { setSelectedLesson } from "../../features/lesson/lesson.store";
 import Constants from "expo-constants";
-import { ListeningResult } from "../models/ListeningResult";
-import {fetchListenResultApi} from "../services/api/progress.services";
-import { getProfile } from "../services/api/user.services";
+import { ListeningResult } from "../../models/ListeningResult";
+import {fetchListenResultApi} from "../../services/api/progress.services";
+import { getProfile } from "../../services/api/user.services";
 import { useFocusEffect } from "@react-navigation/native";
 
 export default function Listening() {

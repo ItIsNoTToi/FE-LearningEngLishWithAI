@@ -1,7 +1,7 @@
 import React from 'react';
 import { Text, ScrollView, StyleSheet, View } from 'react-native';
 import { RouteProp, useRoute } from '@react-navigation/native';
-import { ReadStackParamList } from '../navigation/AppStack';
+import { ReadStackParamList } from '../../navigation/AppStack';
 
 const ReadingDetailScreen = () => {
   const route = useRoute<RouteProp<ReadStackParamList, 'ReadingDetail'>>();

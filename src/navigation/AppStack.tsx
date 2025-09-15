@@ -5,21 +5,21 @@ import { faHome, faRobot, faUser, faTrophy, faChartLine } from '@fortawesome/fre
 
 import HomeScreen from '../screens/index';
 import ProfileScreen from '../screens/ProfileScreen';
-import ListLesson from '../screens/ListLesson';
-import RankingScreen from '../screens/RankingScreen';
-import CompetitionScreen from '../screens/CompetitionScreen';
-import LearningWithAI from '../screens/LearningWithAI';
-import AskingAI from '../screens/AskingAI';
-import VocabularyPage from '../screens/Vocabulary';
-import QuizTest from '../screens/QuizTest';
-import Listening from '../screens/Listening';
-import ListQuizTopic from '../screens/ListQuizTopic';
-import ReadingTopicsScreen from '../screens/ReadingTopicsScreen';
-import ReadingDetailScreen from '../screens/ReadingDetailScreen';
+import ListLesson from '../screens/4SkillAI/ListLesson';
+import RankingScreen from '../screens/Extends/RankingScreen';
+import CompetitionScreen from '../screens/Extends/CompetitionScreen';
+import LearningWithAI from '../screens/4SkillAI/LearningWithAI';
+import AskingAI from '../screens/4SkillAI/AskingAI';
+import VocabularyPage from '../screens/Extends/Vocabulary';
+import QuizTest from '../screens/Extends/QuizTest';
+import Listening from '../screens/4SkillAI/Listening';
+import ListQuizTopic from '../screens/4SkillAI/ListQuizTopic';
+import ReadingTopicsScreen from '../screens/4SkillAI/ReadingTopicsScreen';
+import ReadingDetailScreen from '../screens/4SkillAI/ReadingDetailScreen';
 import Lesson from '../models/lesson';
-import ResultScreen from '../screens/ResultScreen';
-import TournamentDetailScreen from '../screens/TournamentDetail';
-import LearningWithAudio from '../screens/LearningWithAudio';
+import ResultScreen from '../screens/Extends/ResultScreen';
+import TournamentDetailScreen from '../screens/Extends/TournamentDetail';
+import LearningWithAudio from '../screens/4SkillAI/LearningWithAudio';
 
 export type QuizStackParamList = {
   QuizTopic: undefined;
@@ -66,19 +66,9 @@ function MainTabs() {
         name="ListLesson"
         component={ListLesson}
         options={{
-          title: 'List Lesson',
+          title: 'Chat with AI',
           tabBarIcon: ({ color, size }) => (
             <FontAwesomeIcon icon={faRobot} color={color} size={size} />
-          ),
-        }}
-      />
-      <Tab.Screen
-        name="Ranking"
-        component={RankingScreen}
-        options={{
-          title: 'Ranking',
-          tabBarIcon: ({ color, size }) => (
-            <FontAwesomeIcon icon={faChartLine} color={color} size={size} />
           ),
         }}
       />
@@ -207,6 +197,11 @@ export default function AppNavigation() {
         name="AIListening"
         component={Listening}
         options={{ title: 'Listening', headerShown: false }}
+      />
+      <Stack.Screen
+        name="Ranking"
+        component={RankingScreen}
+        options={{ title: 'Ranking', headerShown: false }}
       />
     </Stack.Navigator>
   );

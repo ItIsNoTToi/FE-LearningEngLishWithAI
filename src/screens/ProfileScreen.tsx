@@ -4,12 +4,12 @@ import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { faBars } from '@fortawesome/free-solid-svg-icons';
 import User from '../models/user';
 import { getProfile, logout_fe } from '../services/api/user.services';
-import Progress from './progressScreen';
+import Progress from '../screens/Data/progressScreen';
 import { ScrollView } from 'react-native-gesture-handler';
 import Constants from 'expo-constants';
 import { useAuth } from '../hooks/AuthContext';
 
-export default function ProfileScreen() {
+export default function ProfileScreen({ navigation }: any) {
   const [user, setUser] = useState<User>();
   const { logout } = useAuth();
   useEffect(( ) => {
@@ -68,6 +68,10 @@ export default function ProfileScreen() {
         {/* Edit profile */}
         <TouchableOpacity style={styles.editBtn}>
           <Text style={{ color: "#fff", fontWeight: "600" }}>Chỉnh sửa hồ sơ</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity style={styles.editBtn} onPress={() => navigation.navigate('Ranking') as any}>
+          <Text style={{ color: "#fff", fontWeight: "600" }}>Ranking</Text>
         </TouchableOpacity>
 
         {/* Progress */}
