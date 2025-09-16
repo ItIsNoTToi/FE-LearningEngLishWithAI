@@ -49,12 +49,12 @@ export const fetchAIStream = (
   return es;
 };
 
-export const startLessonAI = async (userId: any, lessonId: any, mode: any) => {
+export const startLessonAI = async (userId: any, lessonId: any, type: any) => {
     try {
         const response = await axiosInstance.post('/api/ai/start',{
             userId: userId, 
             lessonId: lessonId,
-            mode: mode
+            type: type
         })   
         return response.data;
     } catch (error: any) {
@@ -86,3 +86,4 @@ export const PauseLessonAI = async (userId: any, lessonId: any) => {
         throw Error (error.message);
     }
 }
+

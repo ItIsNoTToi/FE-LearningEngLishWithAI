@@ -1,7 +1,7 @@
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createStackNavigator } from '@react-navigation/stack';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
-import { faHome, faRobot, faUser, faTrophy, faChartLine } from '@fortawesome/free-solid-svg-icons';
+import { faHome, faRobot, faUser, faTrophy } from '@fortawesome/free-solid-svg-icons';
 
 import HomeScreen from '../screens/index';
 import ProfileScreen from '../screens/ProfileScreen';
@@ -9,17 +9,15 @@ import ListLesson from '../screens/4SkillAI/ListLesson';
 import RankingScreen from '../screens/Extends/RankingScreen';
 import CompetitionScreen from '../screens/Extends/CompetitionScreen';
 import LearningWithAI from '../screens/4SkillAI/LearningWithAI';
-import AskingAI from '../screens/4SkillAI/AskingAI';
+
 import VocabularyPage from '../screens/Extends/Vocabulary';
 import QuizTest from '../screens/Extends/QuizTest';
 import Listening from '../screens/4SkillAI/Listening';
-import ListQuizTopic from '../screens/4SkillAI/ListQuizTopic';
-import ReadingTopicsScreen from '../screens/4SkillAI/ReadingTopicsScreen';
-import ReadingDetailScreen from '../screens/4SkillAI/ReadingDetailScreen';
+import ListQuizTopic from '../screens/Extends/ListQuizTopic';
+
 import Lesson from '../models/lesson';
 import ResultScreen from '../screens/Extends/ResultScreen';
 import TournamentDetailScreen from '../screens/Extends/TournamentDetail';
-import LearningWithAudio from '../screens/4SkillAI/LearningWithAudio';
 
 export type QuizStackParamList = {
   QuizTopic: undefined;
@@ -42,12 +40,16 @@ export type TournamentStackParamList = {
   TournamentDetail: { tournamentId: string };
 }
 
+export type LessonStackParamList = {
+  ListLesson: undefined;
+  LearningWithAI: { type: string }
+}
+
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
 const QuizStack = createStackNavigator<QuizStackParamList>();
-const ReadStack = createStackNavigator<ReadStackParamList>();
-// const ProfileStack = createStackNavigator<ProfileStackParamList>();
 const TournamentStack = createStackNavigator<TournamentStackParamList>();
+const LessonStack = createStackNavigator<LessonStackParamList>();
 
 function MainTabs() {
   return (
@@ -63,8 +65,8 @@ function MainTabs() {
         }}
       />
       <Tab.Screen
-        name="ListLesson"
-        component={ListLesson}
+        name="LessonTabs"
+        component={LessonTabs}
         options={{
           title: 'Chat with AI',
           tabBarIcon: ({ color, size }) => (
@@ -118,6 +120,23 @@ function QuizTabs() {
   );
 }
 
+function LessonTabs() {
+  return (
+    <LessonStack.Navigator screenOptions={{ headerShown: false }}>
+      <LessonStack.Screen
+        name="ListLesson"
+        component={ListLesson}
+        options={{ title: 'List Lesson' }}
+      />
+      <LessonStack.Screen
+        name="LearningWithAI"
+        component={LearningWithAI}
+        options={{ title: 'Learning With AI' }}
+      />
+    </LessonStack.Navigator>
+  );
+}
+
 function TournamentTabs() {
   return (
     <TournamentStack.Navigator screenOptions={{ headerShown: false }}>
@@ -135,24 +154,6 @@ function TournamentTabs() {
   );
 }
 
-function ReadingTabs() {
-  return (
-    <ReadStack.Navigator screenOptions={{ headerShown: false }}>
-      <ReadStack.Screen
-        name="ReadingTopics"
-        component={ReadingTopicsScreen}
-        options={{ title: 'Reading Topics' }}
-      />
-      <ReadStack.Screen
-        name="ReadingDetail"
-        component={ReadingDetailScreen}
-        options={{ title: 'Reading Detail' }}
-      />
-    </ReadStack.Navigator>
-  );
-}
-
-
 export default function AppNavigation() {
   return (
     <Stack.Navigator>
@@ -163,26 +164,6 @@ export default function AppNavigation() {
         options={{ headerShown: false }}
       />
       {/* Màn phụ - mở từ ListLesson */}
-      <Stack.Screen
-        name="Reading"
-        component={ReadingTabs}
-        options={{ title: 'Reading', headerShown: false }}
-      />
-      <Stack.Screen
-        name="LearningWithAudio"
-        component={LearningWithAudio}
-        options={{ title: 'Learning With Audio', headerShown: false }}
-      />
-      <Stack.Screen
-        name="LearningWithAI"
-        component={LearningWithAI}
-        options={{ title: 'Learning With AI', headerShown: false }}
-      />
-      <Stack.Screen
-        name="AskingAI"
-        component={AskingAI}
-        options={{ title: 'Asking AI', headerShown: false }}
-      />
       <Stack.Screen
         name="QuizTest"
         component={QuizTabs}

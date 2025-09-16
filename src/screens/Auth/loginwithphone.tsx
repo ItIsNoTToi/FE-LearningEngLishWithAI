@@ -50,8 +50,8 @@ export default function LoginWithPhone({ navigation }: any) {
                 fetchLoginWithPhone(data)
                 .then(data => {
                     // console.log("Login successful:", data);
-                    saveToken(data.token);
-                    console.log(data.user);
+                    saveToken(data.token, data.user._id);
+                    // console.log(data.user);
                     AsyncStorage.setItem('userId', data.user._id);
                     data.success ? login() : alert('Login failed. Please check your credentials.');
                 })

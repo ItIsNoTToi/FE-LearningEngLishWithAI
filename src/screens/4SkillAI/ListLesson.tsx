@@ -1,26 +1,28 @@
 import React, { useEffect, useState, useCallback } from "react";
 import { View, Text, FlatList, TouchableOpacity, StyleSheet, Alert } from "react-native";
 import { getLesson } from "../../services/api/lesson.services";
-import { useNavigation } from "@react-navigation/native";
 import Lesson from "../../models/lesson";
 import User from '../../models/user';
 import { useDispatch } from "react-redux";
-import { setSelectedLesson } from "../../features/lesson/lesson.store";
+import { setLesson } from "../../redux/slices/lesson.store";
 import Constants from "expo-constants";
 import { progress } from "../../models/progress";
 import {fetchProgressApi} from "../../services/api/progress.services";
-import { getProfile } from "../../services/api/user.services";
+import { getUser } from "../../services/api/user.services";
 import { useFocusEffect } from "@react-navigation/native";
+import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { LessonStackParamList } from '../../navigation/AppStack';
 
-export default function ListLesson() {
-  const navigation = useNavigation();
+type Props = NativeStackScreenProps<LessonStackParamList, 'ListLesson'>;
+
+export default function ListLesson({ navigation }: Props) {
   const [lessons, setLessons] = useState<Lesson[]>([]);
   const [user, setUser] = useState<User>();
   const [progresses, setProgresses] = useState<progress[]>([]);
   const dispatch = useDispatch();
 
   useEffect(() => {
-    getProfile()
+    getUser()
       .then(data => setUser(data.data))
       .catch(error => console.error(error));
   }, []);
@@ -51,19 +53,9 @@ export default function ListLesson() {
     return !(prevProgress && prevProgress.status === "completed");
   };
 
-  const goToLesson = (lesson: Lesson) => {
-    dispatch(setSelectedLesson(lesson));
-    //Practice mode (AI hỏi trước): Giúp học viên có hướng dẫn, luyện tập structured.
-    //Free chat mode (người học hỏi): Giúp luyện phản xạ, tự do sáng tạo.
-    Alert.alert(
-      "Chọn chế độ học",
-      "Bạn muốn luyện tập như thế nào?",
-      [
-        { text: "Practice Mode", onPress: () => navigation.navigate("LearningWithAI" as never) },
-        { text: "Free Chat Mode", onPress: () => navigation.navigate("AskingAI" as never) },
-        { text: "Hủy", style: "cancel" }
-      ]
-    );
+  const goToLesson = (lesson: Lesson, type: any) => {
+    dispatch(setLesson(lesson));
+    navigation.navigate("LearningWithAI", { type: type });  
   };
 
   const renderLesson = ({ item, index }: { item: Lesson, index: number }) => (
@@ -71,14 +63,14 @@ export default function ListLesson() {
       style={[styles.card, isLessonDisabled(index) && { opacity: 0.5 }]}
       disabled={isLessonDisabled(index)} 
       activeOpacity={0.7}
-      onPress={() => goToLesson(item)}
+      onPress={() => goToLesson(item, item.type)}
     >
       <View style={styles.cardHeader}>
         <Text style={styles.icon}>📘</Text>
         <Text style={styles.title}>{item.title}</Text>
       </View>
       <Text style={styles.description} numberOfLines={2}>
-        {item.description}
+        {item.description} - {item.type}
       </Text>
     </TouchableOpacity>
   );

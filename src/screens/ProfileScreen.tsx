@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, Image, Button, TouchableOpacity } from 'react-n
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { faBars } from '@fortawesome/free-solid-svg-icons';
 import User from '../models/user';
-import { getProfile, logout_fe } from '../services/api/user.services';
+import { getUser, logout_fe } from '../services/api/user.services';
 import Progress from '../screens/Data/progressScreen';
 import { ScrollView } from 'react-native-gesture-handler';
 import Constants from 'expo-constants';
@@ -13,7 +13,7 @@ export default function ProfileScreen({ navigation }: any) {
   const [user, setUser] = useState<User>();
   const { logout } = useAuth();
   useEffect(( ) => {
-    getProfile()
+    getUser()
     .then(data => {
       // console.log('data:2',data.data);
       setUser(data.data);
@@ -25,12 +25,17 @@ export default function ProfileScreen({ navigation }: any) {
   //   console.log('user2', user._id);
   // }
 
-  const logoutBtn = () =>{
-    logout_fe()
-    .then(data =>{
-      data.success ? logout(): alert("Can't logout");
-    })
-    
+  const logoutBtn = async () => {
+    try{
+      await logout_fe()
+      .then(data =>{
+        data.success ? logout(): alert("Can't logout");
+      })
+    } catch (e){
+      console.log(e);
+    } finally{
+      logout();
+    }
   }
 
   return (

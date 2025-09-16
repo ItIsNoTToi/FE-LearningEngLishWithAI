@@ -4,7 +4,8 @@ import { useAuth } from '../../hooks/AuthContext';
 import { fetchLogin } from '../../services/api/auth.services';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-export async function saveToken(token: string) {
+export async function saveToken(token: string, userId: string) {
+  await AsyncStorage.setItem('userId', userId);
   await AsyncStorage.setItem('authToken', token);
 }
 
@@ -27,8 +28,8 @@ export default function Login({ navigation }: any) {
         fetchLogin( data )
           .then(data => {
             //console.log("Login successful:", data);
-            saveToken(data.token);
-            AsyncStorage.setItem('userId', data.user._id); // Lưu userId để dùng sau
+            saveToken(data.token, data.user._id);
+             // Lưu userId để dùng sau
             data.success ? login() : alert('Login failed. Please check your credentials.');
           })
           .catch(error => {

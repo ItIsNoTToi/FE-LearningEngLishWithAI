@@ -4,6 +4,7 @@ import { fetchRegister } from '../../services/api/auth.services';
 import { useAuth } from '../../hooks/AuthContext';
 import { ScrollView } from 'react-native-gesture-handler';
 import { saveToken } from './login';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function Register({ navigation }: any) {
   const [username, setUserName] = useState('');
@@ -44,8 +45,9 @@ export default function Register({ navigation }: any) {
 
       await fetchRegister(userData)
       .then((data) => {
-        saveToken(data.token);
-        // console.log(data);
+        saveToken(data.token, data.data.id);
+         console.log(data);
+        AsyncStorage.setItem('userId', data.data.id);
         data.success ? login() : alert('Login failed. Please check your credentials.');
       })
       .catch((error: any) => {

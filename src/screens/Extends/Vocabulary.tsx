@@ -71,7 +71,7 @@ export default function VocabularyPage() {
 
         <FlatList
           data={filteredData}
-          keyExtractor={(item) => item.id}
+          keyExtractor={(item, index) => (item.id ? item.id.toString() : index.toString())}
           renderItem={({ item }) => (
             <TouchableOpacity
               style={styles.itemContainer}

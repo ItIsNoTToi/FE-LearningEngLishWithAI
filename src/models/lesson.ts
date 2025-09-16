@@ -7,10 +7,13 @@ export default interface Lesson {
     meaning: string;
     example: string;
   }];
-  level: 'beginner' | 'intermediate' | 'advanced';
+  type: 'listening' | 'reading' | 'writing' | 'speaking';
   order: number;
   content?: string; // văn bản, HTML, JSON...
   audioUrl: string;
+  videoUrl:  string;
+  maxScore:  number;
+  passingScore: number;
   createdAt?: Date;
   updatedAt?: Date;
   status?: 'close' | 'open';

@@ -5,11 +5,11 @@ import { useNavigation } from "@react-navigation/native";
 import Lesson from "../../models/lesson";
 import User from '../../models/user';
 import { useDispatch } from "react-redux";
-import { setSelectedLesson } from "../../features/lesson/lesson.store";
+import { setLesson } from "../../redux/slices/lesson.store";
 import Constants from "expo-constants";
 import { ListeningResult } from "../../models/ListeningResult";
 import {fetchListenResultApi} from "../../services/api/progress.services";
-import { getProfile } from "../../services/api/user.services";
+import { getUser } from "../../services/api/user.services";
 import { useFocusEffect } from "@react-navigation/native";
 
 export default function Listening() {
@@ -20,7 +20,7 @@ export default function Listening() {
   const dispatch = useDispatch();
 
   useEffect(() => {
-    getProfile()
+    getUser()
       .then(data => setUser(data.data))
       .catch(error => console.error(error));
   }, []);
@@ -52,7 +52,7 @@ export default function Listening() {
   };
 
   const goToLesson = (lesson: Lesson) => {
-    dispatch(setSelectedLesson(lesson));
+    dispatch(setLesson(lesson));
     navigation.navigate("LearningWithAudio" as never) 
   };
 

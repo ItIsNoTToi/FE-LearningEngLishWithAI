@@ -1,7 +1,7 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "../../config/axiosconfig";
 
-export const getProfile = async () => {
+export const getUser = async () => {
   try {
     // Lấy token đã lưu sau khi login
     const token = await AsyncStorage.getItem("authToken");
@@ -10,7 +10,12 @@ export const getProfile = async () => {
     }
     // console.log(token);
 
-    const res = await axios.get("/api/profile", {
+    const userId = await AsyncStorage.getItem("userId");
+    if (!userId) {
+      throw new Error("No UserId found");
+    }
+
+    const res = await axios.get(`/api/User/${userId}`, {
       headers: {
         Authorization: `Bearer ${token}`, // Gửi token lên BE
       },
@@ -19,7 +24,7 @@ export const getProfile = async () => {
 
     return res.data; // Dữ liệu user trả về từ BE
   } catch (error) {
-    console.error("Get profile error:", error);
+    console.error("Get User error:", error);
     throw error;
   }
 };
