@@ -5,7 +5,7 @@ import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { QuizStackParamList } from '../../navigation/AppStack';
 import { getQuestionByQuizId, SaveHistoryQuiz } from '../../services/api/quiz.services';
 
-type Props = NativeStackScreenProps<QuizStackParamList, 'Test'>;
+type Props = NativeStackScreenProps<QuizStackParamList, 'QuizTest'>;
 
 export default function QuizTest({ route, navigation }: Props) {
   const { quizId } = route.params;

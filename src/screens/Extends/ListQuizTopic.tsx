@@ -32,7 +32,7 @@ const ListQuizTopic = ({ navigation }: Props) => {
         renderItem={({ item }) => (
           <TouchableOpacity
             style={styles.item}
-            onPress={() => navigation.navigate('Test', { quizId: item._id })}
+            onPress={() => navigation.navigate('QuizTest', { quizId: item._id })}
           >
             <Text style={styles.title}>{item.title}</Text>
           </TouchableOpacity>

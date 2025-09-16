@@ -53,9 +53,23 @@ export default function ListLesson({ navigation }: Props) {
     return !(prevProgress && prevProgress.status === "completed");
   };
 
-  const goToLesson = (lesson: Lesson, type: any) => {
-    dispatch(setLesson(lesson));
-    navigation.navigate("LearningWithAI", { type: type });  
+  const goToLesson = (lesson: Lesson, type: string) => {
+    try{
+      // console.log(1)
+      dispatch(setLesson(lesson));
+      if(type === 'listening'){
+        navigation.navigate("ListenChat", { type: type });
+      } else if(type === 'reading'){
+        navigation.navigate("ReadChat", { type: type });
+      } else if(type === 'speaking'){
+        navigation.navigate("SpeakChat", { type: type });
+      } else{
+        navigation.navigate("WriteChat", { type: type });
+      }
+      // console.log(2)
+    } catch (e) {
+      console.log(e);
+    }
   };
 
   const renderLesson = ({ item, index }: { item: Lesson, index: number }) => (

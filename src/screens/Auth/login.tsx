@@ -12,8 +12,8 @@ export async function saveToken(token: string, userId: string) {
 export default function Login({ navigation }: any) {
   const { login } = useAuth();
   const [inputVisible, setInputVisible] = useState(false);
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState('giangvanhung2003@gmail.com');
+  const [password, setPassword] = useState('Hung123456@');
 
   const handleLogin = () => {
     if (!inputVisible) {
