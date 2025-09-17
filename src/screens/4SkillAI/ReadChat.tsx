@@ -190,13 +190,17 @@ export default function ReadChat({ route, navigation }: Props) {
           data={messages}
           keyExtractor={(_, idx) => String(idx)}
           contentContainerStyle={styles.chatList}
-          renderItem={({ item }) => (
-            <View style={[styles.messageBubble, item.from === "user" ? styles.userBubble : styles.aiBubble]}>
-              <Text style={[styles.messageText, item.from === "user" && { color: "#fff" }]}>
-                {typeof item.text === "string" ? item.text : JSON.stringify(item.text)}
-              </Text>
-            </View>
-          )}
+          // Gọn hơn khi render message
+          renderItem={({ item }) => {
+            const isUser = item.from === "user";
+            return (
+              <View style={[styles.messageBubble, isUser ? styles.userBubble : styles.aiBubble]}>
+                <Text style={[styles.messageText, isUser && { color: "#fff" }]}>
+                  {item.text}
+                </Text>
+              </View>
+            );
+          }}
           onContentSizeChange={() => flatRef.current?.scrollToEnd({ animated: true })}
         />
 

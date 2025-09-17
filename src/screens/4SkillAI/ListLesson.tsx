@@ -12,6 +12,8 @@ import { getUser } from "../../services/api/user.services";
 import { useFocusEffect } from "@react-navigation/native";
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { LessonStackParamList } from '../../navigation/AppStack';
+import { faHourglassStart } from "@fortawesome/free-solid-svg-icons";
+import { retakeLessonApi } from "../../services/api/AI.services";
 
 type Props = NativeStackScreenProps<LessonStackParamList, 'ListLesson'>;
 
@@ -41,61 +43,119 @@ export default function ListLesson({ navigation }: Props) {
     }, [user])
   );
 
-  const isLessonDisabled = (index: number) => {
-    if (index === 0) return false; // Bài đầu luôn mở
-    const prevLesson = lessons[index - 1];
-    const prevProgress = progresses.find(
-      p =>
-        (typeof p.lesson === "string" && p.lesson === prevLesson._id) ||
-        // Nếu có trường hợp populate object:
-        (typeof p.lesson === "object" && "._id" in p.lesson && p.lesson._id === prevLesson._id)
+  const isLessonDisabled = (lessonId: string) => {
+    const pg = progresses.find(
+      (p) =>
+        (typeof p.lesson === "string" && p.lesson === lessonId) ||
+        (typeof p.lesson === "object" && "_id" in p.lesson && p.lesson._id === lessonId)
     );
-    return !(prevProgress && prevProgress.status === "completed");
+    return !(pg && pg.isUnlocked); // chỉ cần dựa vào isUnlocked
+  };
+
+  const handleRetake = (lesson: Lesson) => {
+    Alert.alert(
+      "Học lại",
+      "Bạn có chắc muốn học lại từ đầu?",
+      [
+        { text: "Hủy", style: "cancel" },
+        {
+          text: "Đồng ý",
+          onPress: async () => {
+            try {
+              // Gọi API reset progress
+              await retakeLessonApi(user?._id, lesson._id);
+              // Cập nhật lại progress local
+              fetchProgressApi(user?._id).then((data) => setProgresses(data.data));
+              // Chuyển vào bài học
+              goToLesson(lesson, lesson.type);
+            } catch (err) {
+              console.error(err);
+            }
+          },
+        },
+      ]
+    );
   };
 
   const goToLesson = (lesson: Lesson, type: string) => {
-    try{
-      // console.log(1)
-      dispatch(setLesson(lesson));
-      if(type === 'listening'){
-        navigation.navigate("ListenChat", { type: type });
-      } else if(type === 'reading'){
-        navigation.navigate("ReadChat", { type: type });
-      } else if(type === 'speaking'){
-        navigation.navigate("SpeakChat", { type: type });
-      } else{
-        navigation.navigate("WriteChat", { type: type });
-      }
-      // console.log(2)
-    } catch (e) {
-      console.log(e);
-    }
+    dispatch(setLesson(lesson));
+    navigation.navigate(
+      type === "listening" ? "ListenChat" :
+      type === "reading"   ? "ReadChat"   :
+      type === "speaking"  ? "SpeakChat"  :
+                            "WriteChat",
+      { type }
+    );
   };
 
-  const renderLesson = ({ item, index }: { item: Lesson, index: number }) => (
-    <TouchableOpacity
-      style={[styles.card, isLessonDisabled(index) && { opacity: 0.5 }]}
-      disabled={isLessonDisabled(index)} 
-      activeOpacity={0.7}
-      onPress={() => goToLesson(item, item.type)}
-    >
-      <View style={styles.cardHeader}>
-        <Text style={styles.icon}>📘</Text>
-        <Text style={styles.title}>{item.title}</Text>
-      </View>
-      <Text style={styles.description} numberOfLines={2}>
-        {item.description} - {item.type}
-      </Text>
-    </TouchableOpacity>
-  );
+  const renderLesson = ({ item, index }: { item: Lesson, index: number }) => {
+    const userProgress = progresses.find(
+      (p) =>
+        (typeof p.lesson === "string" && p.lesson === item._id) ||
+        (typeof p.lesson === "object" && "_id" in p.lesson && p.lesson._id === item._id)
+    ); 
+
+    return (
+      <TouchableOpacity
+        style={[styles.card, isLessonDisabled(item._id) && { opacity: 0.5 }]}
+        disabled={isLessonDisabled(item._id)} 
+        activeOpacity={0.7}
+        onPress={() => goToLesson(item, item.type)}
+      >
+        <View style={styles.cardHeader}>
+          <Text style={styles.icon}>📘</Text>
+          <Text style={styles.title}>{item.title}</Text>
+        </View>
+        <Text style={styles.description} numberOfLines={2}>
+          {item.description} - {item.type}
+        </Text>
+        {/* Hiển thị trạng thái bài học */}
+        {userProgress && (
+          <Text style={{ marginTop: 6, fontSize: 14, color: "#0f172a" }}>
+            {userProgress.status === "completed"
+              ? "✅ Hoàn thành"
+              : userProgress.status === "in_progress"
+              ? `⏳ Đang học (${userProgress.progress || 0}%)`
+              : userProgress.status === "paused"
+              ? "⏸️ Tạm dừng"
+              : "📖 Chưa học"}
+          </Text>
+        )} 
+
+        {userProgress?.status === "completed" ? (
+          <View style={styles.btnRow}>
+            <TouchableOpacity
+              style={[styles.btn, { backgroundColor: "#3b82f6" }]}
+              onPress={() => goToLesson(item, item.type)} // Review
+            >
+              <Text style={styles.btnText}>👀 Review</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.btn, { backgroundColor: "#f97316" }]}
+              onPress={() => handleRetake(item)} // Retake
+            >
+              <Text style={styles.btnText}>🔄 Retake</Text>
+            </TouchableOpacity>
+          </View>
+        ) : (
+          <TouchableOpacity
+            style={[styles.btn, { backgroundColor: "#10b981" }]}
+            onPress={() => goToLesson(item, item.type)}
+          >
+            <Text style={styles.btnText}>▶️ Start</Text>
+          </TouchableOpacity>
+        )}
+      </TouchableOpacity>
+    );
+  }
 
   // if(lessons){
   //   console.log(lessons);
   // }
 
-  // if(progresses){
-  //   console.log(progresses);
-  // }
+  if(progresses){
+    console.log(progresses);
+  }
 
   return (
     <View style={styles.container}>
@@ -140,4 +200,13 @@ const styles = StyleSheet.create({
   icon: { fontSize: 20, marginRight: 8 },
   title: { fontSize: 18, fontWeight: "600", color: "#334155", flexShrink: 1 },
   description: { fontSize: 15, color: "#64748b", lineHeight: 20 },
+  btnRow: { flexDirection: "row", marginTop: 10, justifyContent: "space-between" },
+  btn: {
+    flex: 1,
+    padding: 10,
+    borderRadius: 8,
+    alignItems: "center",
+    marginHorizontal: 4,
+  },
+  btnText: { color: "#fff", fontWeight: "600" },
 });

@@ -87,3 +87,7 @@ export const PauseLessonAI = async (userId: any, lessonId: any) => {
     }
 }
 
+export const retakeLessonApi = async (userId: any, lessonId: any) => {
+
+}
+
