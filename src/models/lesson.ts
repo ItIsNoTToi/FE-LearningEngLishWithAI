@@ -7,7 +7,7 @@ export default interface Lesson {
     meaning: string;
     example: string;
   }];
-  type: 'listening' | 'reading' | 'writing' | 'speaking';
+  type: 'listening' | 'reading';
   order: number;
   content?: string; // văn bản, HTML, JSON...
   audioUrl: string;

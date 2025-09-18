@@ -3,8 +3,6 @@ import { LessonStackParamList } from "./AppStack";
 import ListLesson from '../screens/4SkillAI/ListLesson';
 import ListenChat from '../screens/4SkillAI/ListenChat';
 import ReadChat from '../screens/4SkillAI/ReadChat';
-import SpeakChat from '../screens/4SkillAI/SpeakChat';
-import WriteChat from '../screens/4SkillAI/WriteChat';
 
 const LessonStack = createNativeStackNavigator<LessonStackParamList>();
 
@@ -14,8 +12,6 @@ export function LessonStackNavigator() {
       <LessonStack.Screen name="ListLesson" component={ListLesson} />
       <LessonStack.Screen name="ListenChat" component={ListenChat} />
       <LessonStack.Screen name="ReadChat" component={ReadChat} />
-      <LessonStack.Screen name="SpeakChat" component={SpeakChat} />
-      <LessonStack.Screen name="WriteChat" component={WriteChat} />
     </LessonStack.Navigator>
   );
 }

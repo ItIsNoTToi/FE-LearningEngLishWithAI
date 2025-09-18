@@ -39,8 +39,6 @@ export type LessonStackParamList = {
   ListLesson: undefined;
   ListenChat: { type: string }
   ReadChat: { type: string }
-  SpeakChat: { type: string }
-  WriteChat: { type: string }
 }
 
 const Tab = createBottomTabNavigator();

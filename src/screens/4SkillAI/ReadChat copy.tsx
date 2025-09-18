@@ -10,26 +10,18 @@ import { useFocusEffect } from "@react-navigation/native";
 import { useSelector } from "react-redux";
 import type { RootState } from "../../redux/store";
 import { useChatlog } from "../../hooks/useChatlog";
-import { startLessonAI, EndLessonAI, PauseLessonAI } from "../../services/api/AI.services";
+import { startLessonAI, EndLessonAI, PauseLessonAI, postRecord } from "../../services/api/AI.services";
 import { getUser } from "../../services/api/user.services";
 import User from "../../models/user";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { LessonStackParamList } from "../../navigation/AppStack";
 import Constants from "expo-constants";
 import { Audio } from "expo-av";
-import * as FileSystem from "expo-file-system";
-import { WS_API } from "@env";
 
 type Props = NativeStackScreenProps<LessonStackParamList, 'ReadChat'>;
 
-const SOCKET_URL = WS_API;
-
 async function speak(text: string) {
-  try {
-    await Speech.speak(text, { language: "en", pitch: 1.0, rate: 1.0 });
-  } catch (e) {
-    console.warn("Speech failed:", e);
-  }
+  Speech.speak(text, { language: "en", pitch: 1.0, rate: 1.0 });
 }
 
 export default function ReadChat({ route, navigation }: Props) {
@@ -37,32 +29,36 @@ export default function ReadChat({ route, navigation }: Props) {
   const { type } = route.params;
   const flatRef = useRef<FlatList<any>>(null);
 
-  const selectedLesson = useSelector((s: RootState) => s?.lesson?.selectedLesson);
+  const selectedLesson = useSelector((s: RootState) => s?.lesson.selectedLesson);
   const [user, setUser] = useState<User>();
+  const [userInput, setUserInput] = useState('');
   const [content, setContent] = useState('');
   const [contentVisible, setContentVisible] = useState(false);
   const [isEnding, setIsEnding] = useState(false);
+  const [sending, setSending] = useState(false);
   const [lessonEnded, setLessonEnded] = useState(false);
+  const [recording, setRecording] = useState<Audio.Recording | null>(null);
+  const [isRecording, setIsRecording] = useState(false);
 
-  const [isStreaming, setIsStreaming] = useState(false);
-  const streamingRef = useRef(false); // để kiểm soát loop
-  const socketRef = useRef<any>(null);
+  useEffect(() => {
+    getUser().then(d => setUser(d.data)).catch(console.error);
+  }, []);
 
   const recordingOptions: Audio.RecordingOptions = {
     android: {
       extension: '.m4a',
-      outputFormat: 2,
-      audioEncoder: 3,
-      sampleRate: 16000,
-      numberOfChannels: 1,
-      bitRate: 64000,
+      outputFormat: 2, // MPEG_4
+      audioEncoder: 3, // AAC
+      sampleRate: 44100,
+      numberOfChannels: 2,
+      bitRate: 128000,
     },
     ios: {
       extension: '.caf',
-      audioQuality: 127,
-      sampleRate: 16000,
-      numberOfChannels: 1,
-      bitRate: 64000,
+      audioQuality: 127, // AVAudioQuality.high
+      sampleRate: 44100,
+      numberOfChannels: 2,
+      bitRate: 128000,
       linearPCMBitDepth: 16,
       linearPCMIsBigEndian: false,
       linearPCMIsFloat: false,
@@ -88,8 +84,8 @@ export default function ReadChat({ route, navigation }: Props) {
       try {
         const d = await startLessonAI(user._id, selectedLesson._id, type);
         if (mounted) {
-          setContent(d.content || "");
-          Alert.alert("Info", d.message || "Lesson started");
+          setContent(d.content);
+          Alert.alert("Info", d.message);
           appendMessage({ from: "ai", text: d.firstQuestion });
           speak(d.firstQuestion);
         }
@@ -104,6 +100,7 @@ export default function ReadChat({ route, navigation }: Props) {
   useEffect(() => {
     const unsubscribe = navigation.addListener("beforeRemove", (e: any) => {
       if (isEnding) return;
+
       e.preventDefault();
       Alert.alert("Xác nhận", "Bạn có muốn quay lại không?", [
         { text: "Hủy", style: "cancel" },
@@ -164,126 +161,94 @@ export default function ReadChat({ route, navigation }: Props) {
     }
   }, [messages]);
 
-  // SOCKET init & listeners
-  useEffect(() => {
-    const ws = new WebSocket(SOCKET_URL);
-    socketRef.current = ws;
+  // // Send answer
+  // const handleSend = async () => {
+  //   if (sending || !userInput.trim() || !selectedLesson?._id || !user?._id) return;
+  //   setSending(true);
 
-    ws.onopen = () => console.log("Connected to WS");
+  //   const answer = userInput.trim();
+  //   appendMessage({ from: "user", text: answer });
+  //   setUserInput("");
+  //   appendMessage({ from: "ai", text: "" });
 
-    ws.onmessage = (event) => {
+  //   let fullText = "";
+  //   try {
+  //     fetchAIStream(
+  //       { userId: user._id, lessonId: selectedLesson._id, userSpeechText: answer },
+  //       parsed => {
+  //         if (parsed.delta) {
+  //           fullText += parsed.delta;
+  //           patchLastAIMessage(parsed.delta);
+  //         }
+  //       },
+  //       () => { if (fullText) speak(fullText); setSending(false); },
+  //       () => { setLessonEnded(true); setSending(false); }
+  //     );
+  //   } catch (err) {
+  //     setSending(false);
+  //     console.error("fetchAIStream error:", err);
+  //   }
+  // };
+
+  const startRecording = async () => {
       try {
-        const data = JSON.parse(event.data);
-
-        if (data.type === "transcript" || data.type === "transcript-final") {
-          // Đây là tin nhắn từ user (giọng nói được STT)
-          appendMessage({ from: "user", text: data.text });
+        if (recording) {
+          console.warn('Recording is already in progress');
+          return;
         }
-
-        if (data.type === "ai-response") {
-          // Đây mới là phản hồi của AI
-          appendMessage({ from: "ai", text: data.text });
-          speak(data.text);
-        }
-      } catch (e) {
-        console.error("Invalid WS message:", event.data);
+  
+        await Audio.requestPermissionsAsync();
+        await Audio.setAudioModeAsync({
+          allowsRecordingIOS: true,
+          playsInSilentModeIOS: true,
+        });
+  
+        const { recording: newRecording } = await Audio.Recording.createAsync(recordingOptions);
+        setRecording(newRecording);
+        setIsRecording(true);
+      } catch (err) {
+        console.log('Failed to start recording', err);
       }
     };
-
-    ws.onerror = (err) => console.error("WS error:", err);
-    ws.onclose = () => console.log("WS closed");
-
-    return () => {
-      ws.close();
-      socketRef.current = null;
-    };
-  }, [user?._id, selectedLesson?._id]);
-
-  // Streaming loop: create short recordings (1s), send base64
-  const recordChunkAndSend = async (): Promise<void> => {
-    try {
-      const { recording } = await Audio.Recording.createAsync(recordingOptions);
-      // record ~1s
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      await recording.stopAndUnloadAsync();
-      const uri = recording.getURI();
-      if (!uri) return;
-
-      // read file as base64
-      const base64 = await FileSystem.readAsStringAsync(uri, { encoding: FileSystem.EncodingType.Base64 });
-
-      // emit chunk to server
-      if (socketRef.current?.readyState === WebSocket.OPEN) {
-        socketRef.current.send(JSON.stringify({
-          type: "audio-chunk",
-          data: base64,
-          lessonId: selectedLesson?._id,
-          userId: user?._id
-        }));
-      }
-
-      // delete temp file to avoid filling storage
+  
+    const stopRecording = async () => {
+      if (!recording) return;
+  
+      setIsRecording(false);
       try {
-        await FileSystem.deleteAsync(uri, { idempotent: true });
-      } catch (e) {
-        // ignore deletion errors
+        await recording.stopAndUnloadAsync();
+        const uri = recording.getURI();
+        // console.log('Recording saved at', uri);
+        await sendAudio(uri || '');
+        setRecording(null);
+      } catch (err) {
+        console.error('Failed to stop recording', err);
       }
-    } catch (err) {
-      console.error("recordChunkAndSend error:", err);
-    }
-  };
+    };
+  
+    const sendAudio = async (uri: string) => {
+      const formData = new FormData();
+      formData.append('file', {
+        uri,
+        name: 'audio.m4a',
+        type: 'audio/m4a',
+      } as any);
 
-  // Start streaming: loop calling recordChunkAndSend while streamingRef true
-  const startStreaming = async () => {
-    try {
-      // request permission
-      const p = await Audio.requestPermissionsAsync();
-      if (!p.granted) {
-        Alert.alert("Permission required", "Microphone permission is required to stream audio.");
-        return;
+      console.log(formData);
+  
+      try {
+        const res = await postRecord(formData);
+        console.log('Server response:', res);
+  
+        // Giả lập AI trả lời, thêm vào chat
+        if (res.responseText) {
+          appendMessage({ text: res.responseText, from: 'ai' });
+        }
+      } catch (err: any) {
+        console.error('Upload failed', err.message);
+        Alert.alert('Upload failed', err.message);
       }
-
-      await Audio.setAudioModeAsync({
-        allowsRecordingIOS: true,
-        playsInSilentModeIOS: true,
-      });
-
-      setIsStreaming(true);
-      streamingRef.current = true;
-
-      // Append an empty AI message so we can patch it progressively
-      appendMessage({ from: "ai", text: "" });
-
-      // run loop
-      (async function loop() {
-        while (streamingRef.current) {
-          await recordChunkAndSend();
-          // small gap is ok; loop will continue
-        }
-        // notify server stream ended
-        if (socketRef.current?.connected) {
-          socketRef.current.emit("stream-end", { lessonId: selectedLesson?._id, userId: user?._id });
-        }
-      })();
-    } catch (err) {
-      console.error("startStreaming failed:", err);
-      setIsStreaming(false);
-      streamingRef.current = false;
-    }
-  };
-
-  const stopStreaming = () => {
-    streamingRef.current = false;
-    setIsStreaming(false);
-    // server will receive "stream-end" after loop finishes; also send immediate event
-    if (socketRef.current?.readyState === WebSocket.OPEN) {
-      socketRef.current.send(JSON.stringify({
-        type: "stream-end",
-        lessonId: selectedLesson?._id,
-        userId: user?._id
-      }));
-    }
-  };
+    };
 
   if (!selectedLesson) return <Text style={styles.centerText}>No lesson selected</Text>;
 
@@ -315,6 +280,7 @@ export default function ReadChat({ route, navigation }: Props) {
           data={messages}
           keyExtractor={(_, idx) => String(idx)}
           contentContainerStyle={styles.chatList}
+          // Gọn hơn khi render message
           renderItem={({ item }) => {
             const isUser = item.from === "user";
             return (
@@ -335,13 +301,28 @@ export default function ReadChat({ route, navigation }: Props) {
           </TouchableOpacity>
         )}
 
-        {/* Streaming control */}
-        <TouchableOpacity
-          style={[styles.button, isStreaming && styles.recording]}
-          onPress={isStreaming ? stopStreaming : startStreaming}
-        >
-          <Text style={styles.text}>{isStreaming ? 'Stop Streaming' : 'Start Streaming'}</Text>
-        </TouchableOpacity>
+        {/* Input box */}
+        {/* <View style={[styles.inputContainer, { paddingBottom: insets.bottom }]}>
+          <TextInput
+            value={userInput}
+            onChangeText={setUserInput}
+            placeholder="Your answer..."
+            style={styles.input}
+            returnKeyType="send"
+            onSubmitEditing={handleSend}
+          />
+          <TouchableOpacity disabled={sending} onPress={handleSend} style={[styles.sendButton, sending && { opacity: 0.5 }]}>
+            <Ionicons name="send" size={22} color="#fff" />
+          </TouchableOpacity>
+        </View> */}
+        {/* btn record */}
+         <TouchableOpacity
+            style={[styles.button, isRecording && styles.recording]}
+            onPressIn={startRecording}
+            onPressOut={stopRecording}
+          >
+            <Text style={styles.text}>{isRecording ? 'Recording...' : 'Hold to Record'}</Text>
+          </TouchableOpacity>
       </View>
     </KeyboardAvoidingView>
   );
@@ -360,6 +341,9 @@ const styles = StyleSheet.create({
   userBubble: { backgroundColor: "#007AFF", alignSelf: "flex-end" },
   aiBubble: { backgroundColor: "#E5E5EA", alignSelf: "flex-start" },
   messageText: { fontSize: 16, color: "#000" },
+  inputContainer: { flexDirection: "row", alignItems: "center", marginHorizontal: 16, marginVertical: 8, backgroundColor: "#fff", borderRadius: 12, borderWidth: 1, borderColor: "#ccc", paddingHorizontal: 12, paddingVertical: Platform.OS === "ios" ? 10 : 6 },
+  input: { flex: 1, fontSize: 16, color: "#333" },
+  sendButton: { backgroundColor: "#007AFF", padding: 10, borderRadius: 24, marginLeft: 8 },
   finishButton: { paddingVertical: 12, backgroundColor: "red", borderRadius: 12, marginHorizontal: 16, marginBottom: 16, alignItems: "center" },
   finishButtonText: { color: "#fff", fontSize: 16, fontWeight: "bold" },
   button: {

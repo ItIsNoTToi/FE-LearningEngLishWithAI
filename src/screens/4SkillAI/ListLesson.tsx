@@ -81,9 +81,7 @@ export default function ListLesson({ navigation }: Props) {
     dispatch(setLesson(lesson));
     navigation.navigate(
       type === "listening" ? "ListenChat" :
-      type === "reading"   ? "ReadChat"   :
-      type === "speaking"  ? "SpeakChat"  :
-                            "WriteChat",
+                            "ReadChat",
       { type }
     );
   };
@@ -138,12 +136,15 @@ export default function ListLesson({ navigation }: Props) {
             </TouchableOpacity>
           </View>
         ) : (
-          <TouchableOpacity
-            style={[styles.btn, { backgroundColor: "#10b981" }]}
-            onPress={() => goToLesson(item, item.type)}
-          >
-            <Text style={styles.btnText}>▶️ Start</Text>
-          </TouchableOpacity>
+          <View style={styles.btnRow}>
+            <TouchableOpacity
+              style={[styles.btn, { backgroundColor: "#10b981" }]}
+              onPress={() => goToLesson(item, item.type)}
+            >
+              <Text style={styles.btnText}>▶️ Start</Text>
+            </TouchableOpacity>
+          </View>
+          
         )}
       </TouchableOpacity>
     );
@@ -153,9 +154,9 @@ export default function ListLesson({ navigation }: Props) {
   //   console.log(lessons);
   // }
 
-  if(progresses){
-    console.log(progresses);
-  }
+  // if(progresses){
+  //   console.log(progresses);
+  // }
 
   return (
     <View style={styles.container}>

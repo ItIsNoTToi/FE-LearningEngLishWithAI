@@ -88,6 +88,27 @@ export const PauseLessonAI = async (userId: any, lessonId: any) => {
 }
 
 export const retakeLessonApi = async (userId: any, lessonId: any) => {
-
+ try {
+        const response = await axiosInstance.post('/api/ai/pause',{
+            userId: userId, 
+            lessonId: lessonId 
+        })   
+        return response.data;
+    } catch (error: any) {
+        throw Error (error.message);
+    }
 }
+
+export const postRecord = async (data: FormData) => {
+  try {
+    const response = await axiosInstance.post('/api/ai/record/upload', data, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+    return response.data;
+  } catch (error: any) {
+    throw new Error(error.message);
+  }
+};
+
+
 
